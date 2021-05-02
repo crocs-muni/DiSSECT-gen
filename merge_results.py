@@ -62,7 +62,7 @@ def get_results(fname, merged, original_seed, standard, verbose=False):
 
 
 def merge(standard, verbose=False):
-    parameter_path = os.path.join(standard, f'parameters_{standard}.json')
+    parameter_path = os.path.join('standards','parameters', f'parameters_{standard}.json')
     results_dir = os.path.join(RESULTS_DIR, standard)
 
     # get the names of immediate subdirs, which should be the respective bitsizes

@@ -68,14 +68,14 @@ def get_b_from_r(r, p, a=ZZ(-3)):
 
 
 def verifiably_random_curve(seed, p, cofactor, security_function):
-    r = find_integer(seed, p)
+    r = find_integer(seed, p.nbits())
     b = get_b_from_r(r, p)
     a = ZZ(-3)
     if b is None or (4 * a ** 3 + 27 * b ** 2) % p == 0:
         return {}
-    curve = security_function(a, b, p, cofactor=cofactor)
+    curve = security_function(a, b, p, cofactor)
     if curve:
         return curve
     if p % 4 == 3:
-        curve = security_function(a, p - b, p, cofactor=cofactor)
+        curve = security_function(a, p - b, p, cofactor)
     return curve

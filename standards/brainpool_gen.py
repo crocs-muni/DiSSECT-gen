@@ -169,7 +169,7 @@ def generate_brainpool_curves(count, p, seed):
         "seeds_successful": 0,
     }
 
-    with open("parameters/parameters_brainpool.json", "r") as f:
+    with open("standards/parameters/parameters_brainpool.json", "r") as f:
         params = json.load(f)
         original_seed = params[str(bits)][1]
 
