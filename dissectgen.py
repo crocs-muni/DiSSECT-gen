@@ -34,8 +34,8 @@ def load_parameters(standard,
                     ):
     with open(config_path, "r") as f:
         params = json.load(f)
-        p, curve_seed = params["%s" % num_bits]
-    curve_seed = seed_update(curve_seed, offset, standard)
+        p, std_seed = params["%s" % num_bits]
+    curve_seed = seed_update(std_seed, offset, standard)
 
     while total_count > 0:
         if total_count < count:
@@ -49,7 +49,7 @@ def load_parameters(standard,
             }
         else:
             file_name = get_file_name([count, ZZ(p).nbits(), curve_seed], resdir)
-            yield {"count": count, "prime": p, "seed": curve_seed, "outfile": file_name, "cofactor": cofactor}
+            yield {"count": count, "prime": p, "seed": curve_seed, "outfile": file_name, "cofactor": cofactor, 'std_seed': std_seed}
 
         total_count -= count
         curve_seed = seed_update(curve_seed, count, standard)

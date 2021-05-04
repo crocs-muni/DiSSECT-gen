@@ -61,8 +61,7 @@ def get_results(fname, merged, original_seed, standard, verbose=False):
         )
 
 
-def merge(standard, verbose=False):
-    parameter_path = os.path.join('standards','parameters', f'parameters_{standard}.json')
+def merge(standard, verbose=False, parameter_path =None):
     results_dir = os.path.join(RESULTS_DIR, standard)
 
     # get the names of immediate subdirs, which should be the respective bitsizes
@@ -93,14 +92,17 @@ def main():
     parser = argparse.ArgumentParser(description="Merge results")
     parser.add_argument('-s', "--standard", type=str, default='all', help="standards whose results should be merged")
     parser.add_argument('-v', "--verbose", action='store_true', help="")
+    parser.add_argument('-p', "--params", action='store_true',default = os.path.join('standards','parameters'), help="")
+    parser.add_argument('-r', "--results", action='store_true',default='.', help="")
+
     args = parser.parse_args()
     stds = args.standard
     if stds != 'all':
         merge(stds, args.verbose)
         return
-    for f in os.scandir(RESULTS_DIR):
-        if f.is_dir():
-            merge(f.name, args.verbose)
+    for f in os.scandir(os.path.join(args.results,RESULTS_DIR)):
+        if f.is_dir() and f.name in ['x962','brainpool','secg']:
+            merge(f.name, args.verbose, os.path.join(args.params,f'parameters_{f.name}.json'))
 
 
 if __name__ == '__main__':

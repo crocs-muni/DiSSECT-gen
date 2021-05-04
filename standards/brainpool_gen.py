@@ -155,7 +155,7 @@ def brainpool_curve(p, s, nbits):
     return curve, find_generator(k, field, curve), q
 
 
-def generate_brainpool_curves(count, p, seed):
+def generate_brainpool_curves(count, p, seed, seed_diff=0):
     """This is an implementation of the Brainpool standard suitable for large-scale simulations
         For more readable implementation, see the brainpool.py
     """
@@ -168,10 +168,6 @@ def generate_brainpool_curves(count, p, seed):
         "curves": [],
         "seeds_successful": 0,
     }
-
-    with open("standards/parameters/parameters_brainpool.json", "r") as f:
-        params = json.load(f)
-        original_seed = params[str(bits)][1]
 
     field = GF(p)
     z = PolynomialRing(field, 'z').gen()
@@ -207,7 +203,7 @@ def generate_brainpool_curves(count, p, seed):
         gen = find_generator(k, field, curve)
         x, y = Integer(gen[0]), Integer(gen[1])
 
-        seed_diff = ZZ("0X" + seed) - ZZ("0X" + original_seed)
+        seed_diff = ZZ("0X" + seed) - ZZ("0X" + std_seed)
         sim_curve = {
             "name": "brainpool_sim_" + str(bits) + "_seed_diff_" + str(seed_diff),
             "category": sim_curves["name"],

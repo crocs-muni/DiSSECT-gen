@@ -75,7 +75,7 @@ def generate_point(a, b, h, p):
         return G
 
 
-def generate_x962_curves(count, p, seed, cofactor_one=False):
+def generate_x962_curves(count, p, seed, cofactor_one=False, std_seed='00'):
     """Generates at most #count curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
@@ -89,16 +89,12 @@ def generate_x962_curves(count, p, seed, cofactor_one=False):
         "seeds_successful": 0,
     }
 
-    with open(PARAMETERS_FILE, "r") as f:
-        params = json.load(f)
-        original_seed = params[str(bits)][1]
-
     for i in range(1, count + 1):
         current_seed = increment_seed(seed, -i)
         curve = x962_curve(current_seed, p, cofactor_one)
         if not curve:
             continue
-        seed_diff = ZZ("0X" + original_seed) - ZZ("0X" + current_seed)
+        seed_diff = ZZ("0X" + std_seed) - ZZ("0X" + current_seed)
         sim_curve = {
             "name": f"{STANDARD}_sim_{str(bits)}_seed_diff_{str(seed_diff)}",
             "category": sim_curves["name"],

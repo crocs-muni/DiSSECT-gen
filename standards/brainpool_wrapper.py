@@ -24,14 +24,14 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--seed", action="store", help="")
     parser.add_argument("-u", "--cofactor", action="store", help="")
     parser.add_argument("-f", "--outfile", action="store", help="")
+    parser.add_argument("--std_seed",action='store')
     args = parser.parse_args()
     print(args)
-
     # Do the computation
     count = ZZ(args.count)
     p = ZZ(args.prime)
     seed = args.seed
-    r = generate_brainpool_curves(count, p, seed)
+    r = generate_brainpool_curves(count, p, seed, args.std_seed)
 
     # Save results to the output file
     with open(args.outfile, "w+") as fh:

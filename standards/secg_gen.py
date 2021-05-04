@@ -82,7 +82,7 @@ def sec_curve(p, seed, cofactor):
     return verifiably_random_curve(p, seed, cofactor, verify_security)
 
 
-def generate_sec_curves(count, p, seed, cofactor_one=False):
+def generate_sec_curves(count, p, seed, cofactor_one=False, std_seed = '00'):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     For more readable implementation, see the secg.py
     """
@@ -96,16 +96,12 @@ def generate_sec_curves(count, p, seed, cofactor_one=False):
         "seeds_successful": 0,
     }
 
-    with open(PARAMETERS_FILE, "r") as f:
-        params = json.load(f)
-        original_seed = params[str(bits)][1]
-
     for i in range(1, count + 1):
         current_seed = increment_seed(seed, -i)
         curve = sec_curve(current_seed, p, cofactor_one)
         if not curve:
             continue
-        seed_diff = ZZ("0X" + original_seed) - ZZ("0X" + current_seed)
+        seed_diff = ZZ("0X" + std_seed) - ZZ("0X" + current_seed)
         sim_curve = {
             "name": f"{STANDARD}_sim_{str(bits)}_seed_diff_{str(seed_diff)}",
             "category": sim_curves["name"],

@@ -25,8 +25,9 @@ def main():
     parser.add_argument("-s", "--seed", action="store", help="")
     parser.add_argument("-u", "--cofactor", action="store", help="")
     parser.add_argument("-f", "--outfile", action="store", help="")
+    parser.add_argument("--std_seed",action='store')
     args = parser.parse_args()
-    r = generate_sec_curves(ZZ(args.count), ZZ(args.prime), args.seed, ZZ(args.cofactor))
+    r = generate_sec_curves(ZZ(args.count), ZZ(args.prime), args.seed, ZZ(args.cofactor),args.std_seed)
 
     # Save results to the output file
     with open(args.outfile, "w+") as fh:
