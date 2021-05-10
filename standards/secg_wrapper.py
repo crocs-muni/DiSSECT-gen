@@ -9,11 +9,9 @@ After experiment is finished, the script writes results to the output file.
 """
 
 import argparse
-import json
-
 from sage.all import ZZ
 
-from utils.json_handler import IntegerEncoder
+from utils.json_handler import save_into_json
 from secg_gen import generate_sec_curves
 
 
@@ -25,13 +23,10 @@ def main():
     parser.add_argument("-s", "--seed", action="store", help="")
     parser.add_argument("-u", "--cofactor", action="store", help="")
     parser.add_argument("-f", "--outfile", action="store", help="")
-    parser.add_argument("--std_seed",action='store')
+    parser.add_argument("--std_seed", action='store')
     args = parser.parse_args()
-    r = generate_sec_curves(ZZ(args.count), ZZ(args.prime), args.seed, ZZ(args.cofactor),args.std_seed)
-
-    # Save results to the output file
-    with open(args.outfile, "w+") as fh:
-        json.dump(r, fh, cls=IntegerEncoder)
+    results = generate_sec_curves(ZZ(args.count), ZZ(args.prime), args.seed, ZZ(args.cofactor), args.std_seed)
+    save_into_json(results, args.outfile, mode="w+")
 
 
 if __name__ == "__main__":

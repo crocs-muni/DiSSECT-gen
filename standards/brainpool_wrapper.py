@@ -9,11 +9,9 @@ After experiment is finished, the script writes results to the output file.
 """
 
 import argparse
-import json
-
 from sage.all import ZZ
 
-from utils.json_handler import IntegerEncoder
+from utils.json_handler import save_into_json
 from brainpool_gen import generate_brainpool_curves
 
 if __name__ == "__main__":
@@ -27,12 +25,5 @@ if __name__ == "__main__":
     parser.add_argument("--std_seed",action='store')
     args = parser.parse_args()
     print(args)
-    # Do the computation
-    count = ZZ(args.count)
-    p = ZZ(args.prime)
-    seed = args.seed
-    r = generate_brainpool_curves(count, p, seed, args.std_seed)
-
-    # Save results to the output file
-    with open(args.outfile, "w+") as fh:
-        json.dump(r, fh, cls=IntegerEncoder)
+    results = generate_brainpool_curves(ZZ(args.count), ZZ(args.prime), args.seed, args.std_seed)
+    save_into_json(results, args.outfile, mode="w+")

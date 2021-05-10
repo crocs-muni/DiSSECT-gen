@@ -1,14 +1,10 @@
-import json, os
 from random import randint
-from utils.utils import increment_seed, int_to_hex_string, embedding_degree_p, verifiably_random_curve
+from utils.utils import increment_seed, embedding_degree, verifiably_random_curve, curves_json_wrap
 from sage.all import Integers, ZZ, GF, EllipticCurve, prime_range, is_pseudoprime, sqrt
 
-STANDARD = 'x962'
-PARAMETERS_FILE = os.path.join('standards','parameters', f"parameters_{STANDARD}.json")
 
-
-def verify_near_primality(u, r_min, l_max=255):
-    """Verifying near primarility according to the standard"""
+def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255) -> dict:
+    """Verifying near primality according to the standard"""
     n = u
     h = 1
     for l in prime_range(l_max):
@@ -22,7 +18,7 @@ def verify_near_primality(u, r_min, l_max=255):
     return {}
 
 
-def verify_security(a, b, p, cofactor=0, embedding_degree_bound=20, verbose=False):
+def verify_security(a: ZZ, b: ZZ, p: ZZ, cofactor=0, embedding_degree_bound=20, verbose=False) -> dict:
     """Checks the security according to the standard"""
     cardinality = EllipticCurve(GF(p), [a, b]).__pari__().ellsea(cofactor)
     cardinality = ZZ(cardinality)
@@ -36,7 +32,7 @@ def verify_security(a, b, p, cofactor=0, embedding_degree_bound=20, verbose=Fals
         return {}
     if verbose:
         print("Checking MOV")
-    if embedding_degree_p(p, curve['order']) < embedding_degree_bound:
+    if embedding_degree(p, curve['order']) < embedding_degree_bound:
         return {}
     if verbose:
         print("Checking Frob")
@@ -46,14 +42,13 @@ def verify_security(a, b, p, cofactor=0, embedding_degree_bound=20, verbose=Fals
     return curve
 
 
-def x962_curve(p, seed, cofactor):
+def x962_curve(seed, p, cofactor):
     """Generates a x962 curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
     return verifiably_random_curve(p, seed, cofactor, verify_security)
 
 
 def random_point(a, b, p):
     """Generates a random point according to the standard. Currently not used."""
-
     while True:
         x = randint(0, p)
         L = (x ** 3 + a * x + b) % p
@@ -79,41 +74,14 @@ def generate_x962_curves(count, p, seed, cofactor_one=False, std_seed='00'):
     """Generates at most #count curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
-    bits = p.nbits()
-    sim_curves = {
-        "name": f"{STANDARD}_sim_{str(bits)}",
-        "desc": f"simulated curves generated according to the {STANDARD} standard",
-        "initial_seed": seed,
-        "seeds_tried": count,
-        "curves": [],
-        "seeds_successful": 0,
-    }
-
+    curves = []
     for i in range(1, count + 1):
         current_seed = increment_seed(seed, -i)
         curve = x962_curve(current_seed, p, cofactor_one)
-        if not curve:
-            continue
-        seed_diff = ZZ("0X" + std_seed) - ZZ("0X" + current_seed)
-        sim_curve = {
-            "name": f"{STANDARD}_sim_{str(bits)}_seed_diff_{str(seed_diff)}",
-            "category": sim_curves["name"],
-            "desc": "",
-            "field": {
-                "type": "Prime",
-                "p": int_to_hex_string(p),
-                "bits": bits,
-            },
-            "form": "Weierstrass",
-            "params": {"a": {"raw": int_to_hex_string(curve['a'])}, "b": {"raw": int_to_hex_string(curve['b'])}},
-            "generator": {"x": {"raw": ""}, "y": {"raw": ""}},
-            "order": curve['order'],
-            "cofactor": curve['cofactor'],
-            "characteristics": None,
-            "seed": current_seed,
-            "seed_diff": seed_diff,
-        }
-        sim_curves["curves"].append(sim_curve)
-        sim_curves["seeds_successful"] += 1
-
-    return sim_curves
+        if curve:
+            curve['generator'] = (0, 0)
+            curve['std_seed'] = std_seed
+            curve['seed'] = current_seed
+            curve['prime'] = p
+            curves.append(curve)
+    return curves_json_wrap(curves, p, count, seed, 'x962')

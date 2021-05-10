@@ -1,5 +1,5 @@
+"""Handler for json imports and dumps"""
 import json
-
 from sage.all import Integer
 
 FLOAT_PRECISION = 5
@@ -17,12 +17,12 @@ class IntegerEncoder(json.JSONEncoder):
             return str(obj)
 
 
-def save_into_json(results, fname, mode="a", indent=2):
-    with open(fname, mode) as f:
+def save_into_json(results, file_name, mode="a", indent=2):
+    with open(file_name, mode) as f:
         json.dump(results, f, indent=indent, cls=IntegerEncoder)
 
 
-def load_from_json(fname):
-    with open(fname, "r") as f:
+def load_from_json(file_name):
+    with open(file_name, "r") as f:
         results = json.load(f)
     return results
