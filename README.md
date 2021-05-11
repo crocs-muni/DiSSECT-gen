@@ -10,33 +10,31 @@ The following packages are required: ``shellescape``, ``sarge``
 It is recommended to also have installed: ``coloredlogs``
 
 ### Usage
-```dissectgen -s STD -t COUNT```
+```python3 dissectgen.py STD -t COUNT```
 
 ##### standards
 
-```-s/--standard [x962/brainpool/secg]```
+x962, brainpool, secg
 
 ##### options
 
 ```-i/--interpreter PYTHON ``` choose interpreter. This is either ``sage``, ```sage --python3``` or python of your virtual environment pointing to ```sage --python3``` (see requirements above)
 
+```-b/--bits BITS``` bitsize of the elliptic curve. Must be specified in ```standards/parameters/parameters_*.json```. Currently: Brainpool (160, 192, 224, 256, 320, 384), SECG and x962 (112, 128, 160, 192, 224, 256, 384, 521). 
 
+```-p/--config_path PATH``` The seed for a given bitsize is specified in ```standards/parameters/parameters_*.json```. The path can be changed to PATH.
 
-```-b/--bits BITS``` bitsize of the elliptic curve. Must be supported by the standard or specified in ```standards/parameters/parameters_*.json```. Currently: Brainpool (160, 192, 224, 256, 320, 384), SECG and x962 (112, 128, 160, 192, 224, 256, 384, 521). 
+```-t/--total_count COUNT``` Number of seeds to try for generating elliptic curves.
 
-```-p/--configpath PATH``` The seed for a given bitsize is specified in ```standards/parameters/parameters_*.json```. The path can be changed to PATH.
-
-```-t/--totalcount COUNT``` number seeds to try for generating elliptic curves
-
-```-u/--cofactor [1/0 (default)]``` If 1 then cofactor is forced to 1. Otherwise  any cofactor supported by the standard is permitted.
+```-u/--cofactor [1/0 (default)]``` If 1 then cofactor is forced to 1. Otherwise, ignored and proceed according to the standard.
 
 ```-o/--offset OFFSET``` This specifies the offset from the starting seed from which the generation will begin with. 
 
 ```--tasks NUMBER``` Specifies the number of tasks to run in parallel.
 
-```-c/--count COUNT``` number of seeds per task
+```-c/--count COUNT``` Specifies number of seeds per task.
 
-```--resdir PATH``` Path to the location where the resulting curves should be stored.
+```--results PATH``` Path to the location where the resulting curves should be stored.
 
 
 
@@ -44,4 +42,8 @@ It is recommended to also have installed: ``coloredlogs``
 
 The generation of curves is parallelized so the resulting curves are distributed into multiple files.
 
-```merge -s [x962/brainpool/secg] -r PATH_TO_RESULTS -p PATH_TO_PARAMS``` will merge the files together
+```python3 merge -s [x962/brainpool/secg/all] -r PATH_TO_RESULTS -p PATH_TO_PARAMS``` will merge the files together
+
+#### Examples
+``python3 dissectgen.py x962 -b 192 -t 100 -u 1``
+``python3 merge.py -s x962``
