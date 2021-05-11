@@ -138,8 +138,8 @@ class ParallelRunner:
         )
 
         while (
-            not self.job_queue.empty()
-            or sum([1 for x in self.runners if x is not None]) > 0
+                not self.job_queue.empty()
+                or sum([1 for x in self.runners if x is not None]) > 0
         ):
             time.sleep(self.tick_time)
 
@@ -209,7 +209,7 @@ class ParallelRunner:
         parser = self.argparser()
         self.args = parser.parse_args()
         self.parallel_tasks = (
-            self.args.tasks or try_fnc(lambda: int(os.getenv("EC_PARALLEL", None))) or 1
+                self.args.tasks or try_fnc(lambda: int(os.getenv("EC_PARALLEL", None))) or 1
         )
         self.process_input()
         self.work()
@@ -233,7 +233,7 @@ class ParallelRunner:
             "--config",
             type=int,
             help="Experiment configuration file."
-            "Passed to job-gen to generate individual jobs & tasks.",
+                 "Passed to job-gen to generate individual jobs & tasks.",
         )
         return parser
 

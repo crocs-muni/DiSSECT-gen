@@ -102,7 +102,7 @@ def escape_shell(inp):
 
 class AsyncRunner:
     def __init__(
-        self, cmd, args=None, stdout=None, stderr=None, cwd=None, shell=True, env=None
+            self, cmd, args=None, stdout=None, stderr=None, cwd=None, shell=True, env=None
     ):
         self.cmd = cmd
         self.args = args

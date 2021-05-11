@@ -39,14 +39,25 @@ def load_parameters(standard: str, config_path: str, num_bits: int, cofactor: in
         curve_seed = seed_update(curve_seed, count, standard)
 
 
+def check_config_file(config_file, bits):
+    """Checks the config file if suitable parameters are present"""
+    with open(config_file, "r") as f:
+        params = json.load(f)
+    if not str(bits) in params:
+        new_bits = list(params.keys())[0]
+        print(f"Bit-size {str(bits)} is not in {config_file}! Taking {new_bits} instead.")
+        return new_bits
+    return bits
+
+
 def main():
-    parser = argparse.ArgumentParser(description="DiSSECT-gen")
+    parser = argparse.ArgumentParser(description="Are you in a dire need of some standardized curves? Use DiSSECT-gen!")
     parser.add_argument('standard', help='which standard do you want to simulate')
     parser.add_argument("--tasks", type=int, default=10, help="Number of tasks to run in parallel")
     parser.add_argument("-i", "--interpreter", default="python3", help="Sage or python?")
     parser.add_argument("-c", "--count", type=int, default=16, help="")
     parser.add_argument("-t", "--total_count", dest="total_count", type=int, default=32, help="")
-    parser.add_argument("-b", "--bits", type=int, default=128, help="")
+    parser.add_argument("-b", "--bits", type=int, default=0, help="")
     parser.add_argument('-u', '--cofactor', type=int, default=0, help="If equal to 1, the cofactor is forced to 1")
     parser.add_argument("-o", "--offset", type=int, default=0, help="")
     parser.add_argument("-p", "--config_path", default=None, help="")
@@ -58,7 +69,8 @@ def main():
     config_path = args.config_path
     if config_path is None:
         config_path = os.path.join('standards', 'parameters', f"parameters_{standard}.json")
-    result_dir = os.path.join(args.result_dir, standard, str(parser.parse_args().bits))
+    bits = check_config_file(config_path, args.bits)
+    result_dir = os.path.join(args.result_dir, standard, str(bits))
     os.makedirs(result_dir, exist_ok=True)
     script_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
     wrapper_path = os.path.join(script_path, 'standards', f'{standard}_wrapper.py')
@@ -68,7 +80,7 @@ def main():
 
     def feeder():
         """Generates computing jobs"""
-        for p in load_parameters(args.standard, config_path, args.bits, args.cofactor, args.total_count, args.count,
+        for p in load_parameters(args.standard, config_path, bits, args.cofactor, args.total_count, args.count,
                                  args.offset, result_dir):
             cli = " ".join(["--%s=%s" % (k, p[k]) for k in p.keys()])
             yield Task(args.interpreter, "%s %s" % (wrapper_path, cli))

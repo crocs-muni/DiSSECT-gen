@@ -3,6 +3,8 @@
 from sage.all import Integers, ZZ, ceil, floor, GF
 import hashlib
 
+STANDARDS = ['x962', 'brainpool', 'secg']
+
 
 def increment_seed(seed: str, i=1) -> str:
     """Increments hex-string seed (without prefix) by i (can be negative)"""
@@ -32,24 +34,23 @@ def rightmost_bits(h: str, nbits: int) -> str:
     return int_to_hex_string(ZZ(h, 16) & ((1 << nbits) - 1))
 
 
-def find_integer(seed: str, nbits: int, brainpool=False) -> ZZ:
+def find_integer(seed: str, nbits: int, brainpool_prime=False) -> ZZ:
     """Generates integer in [0,2^nbits - 1] from a seed s of 160-bit length
     modified = True corresponds to find_integer2 as defined by Brainpool"""
     v = floor((nbits - 1) / 160)
-    w = nbits - 160 * v - brainpool
-    h = sha1(seed)
-    h = bytes.fromhex(rightmost_bits(h, w))
+    w = nbits - 160 * v - (1 - brainpool_prime)
+    h = bytes.fromhex(rightmost_bits(sha1(seed), w))
     for i in range(1, v + 1):
         s_i = rightmost_bits(increment_seed(seed, i), 160)
-        h += hashlib.sha1(bytes.fromhex(s_i))
+        h += hashlib.sha1(bytes.fromhex(s_i)).digest()
     return ZZ(h.hex(), 16)
 
 
 def get_b_from_r(r: ZZ, prime: ZZ, a=ZZ(-3)):
     """Gets a parameter b of elliptic curve out of a random value r"""
-    field = GF(prime)
-    if field(a ** 3 / r).is_square():
-        return ZZ(field(a ** 3 / r).sqrt())
+    a = GF(prime)(a)
+    if (a ** 3 / r).is_square():
+        return ZZ((a ** 3 / r).sqrt())
     return None
 
 
@@ -111,3 +112,10 @@ def seed_update(seed, offset, standard):
     if standard in 'x962':
         return increment_seed(seed, -offset)
     return increment_seed(seed, offset)
+
+
+def seed_order(files, standard):
+    """Sorts through files with results according to the right ordering of seeds"""
+    if standard == 'x962':
+        return sorted(files, key=lambda x: int((x.split(".")[-2]).split("_")[-1], 16), reverse=True)
+    return sorted(files, key=lambda x: int((x.split(".")[-2]).split("_")[-1], 16))

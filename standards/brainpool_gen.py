@@ -1,8 +1,7 @@
 """Implementation of the Brainpool standard, see
     https://tools.ietf.org/pdf/rfc5639.pdf#15
 """
-from sage.all import PolynomialRing, squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, randint, \
-    GF, EllipticCurve, Integer
+from sage.all import PolynomialRing, squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, randint, GF, EllipticCurve
 from utils.utils import increment_seed, embedding_degree, find_integer, curves_json_wrap
 
 CHECK_CLASS_NUMBER = False
@@ -18,7 +17,7 @@ def check_for_prime(n: ZZ):
 def gen_prime(seed: str, nbits: int) -> ZZ:
     """Generates a prime of length nbits out of 160bit seed s"""
     while True:
-        p = find_integer(seed, nbits)
+        p = find_integer(seed, nbits, brainpool_prime=True)
         while not check_for_prime(p):
             p += 1
         if p.nbits() == nbits:
@@ -30,7 +29,7 @@ def find_a(field: GF, seed: str, nbits: int) -> ZZ:
     """Out of 160bit seed s, finds coefficient a for y^2=x^3+ax+b over F_p where p has nbits"""
     z = PolynomialRing(field, 'z').gen()
     while True:
-        a = find_integer(seed, nbits, brainpool=True)
+        a = find_integer(seed, nbits)
         if (a * z ** 4 + 3).roots():
             return a, seed
         seed = increment_seed(seed)
@@ -39,7 +38,7 @@ def find_a(field: GF, seed: str, nbits: int) -> ZZ:
 def find_b(field: GF, seed: str, nbits: int) -> (ZZ, str):
     """Out of 160bit seed s, finds coefficient b for y^2=x^3+ax+b over F_p where p has nbits"""
     while True:
-        b = find_integer(seed, nbits, brainpool=True)
+        b = find_integer(seed, nbits)
         if not field(b).is_square():
             return b, seed
         seed = increment_seed(seed)
@@ -73,7 +72,7 @@ def class_number_check(curve: EllipticCurve, q: ZZ, bound: int):
             tmp *= form
         return -1
 
-    for a in xsrange(1, Integer(1 + ((-whole_disc) // 3)).isqrt()):
+    for a in xsrange(1, ZZ(1 + ((-whole_disc) // 3)).isqrt()):
         a4 = 4 * a
         s = whole_disc + a * a4
         w = 1 + (s - 1).isqrt() if s > 0 else 0
@@ -130,7 +129,7 @@ def brainpool_curve(prime: ZZ, seed: str, nbits: int) -> dict:
     curve, order = None, None
     while True:
         a, seed = find_a(field, seed, nbits)
-        s = increment_seed(seed)
+        seed = increment_seed(seed)
         b, seed = find_b(field, seed, nbits)
         if not check_discriminant(a, b, prime):
             seed = increment_seed(seed)
@@ -138,16 +137,17 @@ def brainpool_curve(prime: ZZ, seed: str, nbits: int) -> dict:
         curve = EllipticCurve(field, [a, b])
         order = curve.__pari__().ellsea(1)
         if order == 0:
-            seed = increment_seed(s)
+            seed = increment_seed(seed)
             continue
-        order = Integer(order)
+        order = ZZ(order)
         if not security(curve, order):
             seed = increment_seed(seed)
             continue
         break
     seed = increment_seed(seed)
-    k = find_integer(seed, nbits, brainpool=True)
-    return {'curve': curve, 'generator': find_generator(k, curve), 'order': order}
+    k = find_integer(seed, nbits)
+    generator = find_generator(k, curve)
+    return {'a': a, 'b': b, 'generator': (ZZ(generator[0]), ZZ(generator[1])), 'order': order}
 
 
 def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00') -> dict:
@@ -162,13 +162,13 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00
     seed = initial_seed
     for i in range(1, count + 1):
         if a is None:
-            a = find_integer(seed, bits, brainpool=True)
+            a = find_integer(seed, bits)
             if not (a * z ** 4 + 3).roots():
                 a = None
                 seed = increment_seed(seed)
                 continue
             seed = increment_seed(seed)
-        b = find_integer(seed, bits, brainpool=True)
+        b = find_integer(seed, bits)
         if field(b).is_square():
             seed = increment_seed(seed)
             continue
@@ -182,16 +182,16 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00
             seed = increment_seed(seed)
             a = None
             continue
-        order = Integer(order)
+        order = ZZ(order)
         if not security(curve, order):
             seed = increment_seed(seed)
             a = None
             continue
-        k = find_integer(increment_seed(seed), bits, brainpool=True)
+        k = find_integer(increment_seed(seed), bits)
         gen = find_generator(k, curve)
         curves.append(
-            {'a': ZZ(a),'b':ZZ(b), 'order': order, 'cofactor': 1, 'seed': seed, 'std_seed': std_seed, 'prime': p,
-             'generator': (ZZ(gen[0]),ZZ(gen[1]))})
+            {'a': ZZ(a), 'b': ZZ(b), 'order': order, 'cofactor': 1, 'seed': seed, 'std_seed': std_seed, 'prime': p,
+             'generator': (ZZ(gen[0]), ZZ(gen[1]))})
         seed = increment_seed(seed)
 
     return curves_json_wrap(curves, p, count, initial_seed, standard='brainpool')
