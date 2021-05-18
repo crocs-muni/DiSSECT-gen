@@ -70,7 +70,7 @@ def generate_point(a, b, h, p):
         return g
 
 
-def generate_x962_curves(count, p, seed, cofactor_one=False, std_seed='00'):
+def generate_x962_curves(count, p, seed, cofactor_one=False):
     """Generates at most #count curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
@@ -80,7 +80,6 @@ def generate_x962_curves(count, p, seed, cofactor_one=False, std_seed='00'):
         curve = x962_curve(current_seed, p, cofactor_one)
         if curve:
             curve['generator'] = (ZZ(0), ZZ(0))
-            curve['std_seed'] = std_seed
             curve['seed'] = current_seed
             curve['prime'] = p
             curves.append(curve)

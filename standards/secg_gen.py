@@ -71,7 +71,7 @@ def sec_curve(seed,p, cofactor):
     return verifiably_random_curve(seed,p, cofactor, verify_security)
 
 
-def generate_sec_curves(count, p, seed, cofactor_one=False, std_seed='00'):
+def generate_sec_curves(count, p, seed, cofactor_one=False):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     """
     curves = []
@@ -80,7 +80,6 @@ def generate_sec_curves(count, p, seed, cofactor_one=False, std_seed='00'):
         curve = sec_curve(current_seed, p, cofactor_one)
         if curve:
             curve['generator'] = (ZZ(0), ZZ(0))
-            curve['std_seed'] = std_seed
             curve['seed'] = current_seed
             curve['prime'] = p
             curves.append(curve)

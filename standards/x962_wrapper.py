@@ -22,9 +22,8 @@ def main():
     parser.add_argument("-s", "--seed", action="store", help="")
     parser.add_argument("-u", "--cofactor", action="store", help="")
     parser.add_argument("-f", "--outfile", action="store", help="")
-    parser.add_argument("--std_seed",action='store')
     args = parser.parse_args()
-    results = generate_x962_curves(ZZ(args.count), ZZ(args.prime), args.seed, ZZ(args.cofactor),args.std_seed)
+    results = generate_x962_curves(ZZ(args.count), ZZ(args.prime), args.seed, ZZ(args.cofactor))
     save_into_json(results, args.outfile, mode="w+")
 
 

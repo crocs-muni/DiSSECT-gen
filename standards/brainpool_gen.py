@@ -150,7 +150,7 @@ def brainpool_curve(prime: ZZ, seed: str, nbits: int) -> dict:
     return {'a': a, 'b': b, 'generator': (ZZ(generator[0]), ZZ(generator[1])), 'order': order}
 
 
-def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00') -> dict:
+def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> dict:
     """This is an implementation of the Brainpool standard suitable for large-scale simulations
         For more readable implementation, see 'brainpool_curve' above
     """
@@ -160,6 +160,7 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00
     z = PolynomialRing(field, 'z').gen()
     a = None
     seed = initial_seed
+    correct_seed = None
     for i in range(1, count + 1):
         if a is None:
             a = find_integer(seed, bits)
@@ -167,6 +168,7 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00
                 a = None
                 seed = increment_seed(seed)
                 continue
+            correct_seed = seed
             seed = increment_seed(seed)
         b = find_integer(seed, bits)
         if field(b).is_square():
@@ -190,7 +192,7 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, std_seed='00
         k = find_integer(increment_seed(seed), bits)
         gen = find_generator(k, curve)
         curves.append(
-            {'a': ZZ(a), 'b': ZZ(b), 'order': order, 'cofactor': 1, 'seed': seed, 'std_seed': std_seed, 'prime': p,
+            {'a': ZZ(a), 'b': ZZ(b), 'order': order, 'cofactor': 1, 'seed': correct_seed, 'prime': p,
              'generator': (ZZ(gen[0]), ZZ(gen[1]))})
         seed = increment_seed(seed)
 

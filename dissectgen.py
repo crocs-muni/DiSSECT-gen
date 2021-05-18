@@ -29,12 +29,12 @@ def load_parameters(standard: str, config_path: str, num_bits: int, cofactor: in
     """Loads the parameters from the config file (prime,seed)"""
     with open(config_path, "r") as f:
         params = json.load(f)
-        p, std_seed = params["%s" % num_bits]
-    curve_seed = seed_update(std_seed, offset, standard)
+        p, initial_seed = params["%s" % num_bits]
+    curve_seed = seed_update(initial_seed, offset, standard)
     while total_count > 0:
         c = total_count if total_count < count else count
         f = get_file_name([c, ZZ(p).nbits(), curve_seed], result_dir)
-        yield {"count": count, "prime": p, "seed": curve_seed, "outfile": f, "cofactor": cofactor, 'std_seed': std_seed}
+        yield {"count": c, "prime": p, "seed": curve_seed, "outfile": f, "cofactor": cofactor}
         total_count -= count
         curve_seed = seed_update(curve_seed, count, standard)
 

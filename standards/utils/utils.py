@@ -80,9 +80,8 @@ def curves_json_wrap(curves: list, p: ZZ, tries: int, seed: str, standard: str) 
         "seeds_successful": len(curves),
     }
     for curve in curves:
-        seed_diff = abs(ZZ("0X" + curve['seed']) - ZZ("0X" + curve['std_seed']))
         sim_curve = {
-            "name": f"{standard}_sim_" + str(p.nbits()) + "_seed_diff_" + str(seed_diff),
+            "name": f"{standard}_sim_" + str(p.nbits()) + "_" + curve['seed'],
             "category": sim_curves["name"],
             "desc": "",
             "field": {
@@ -98,8 +97,7 @@ def curves_json_wrap(curves: list, p: ZZ, tries: int, seed: str, standard: str) 
             "order": curve['order'],
             "cofactor": curve['cofactor'],
             "characteristics": None,
-            "seed": curve['seed'],
-            "seed_diff": seed_diff,
+            "seed": curve['seed']
         }
         sim_curves["curves"].append(sim_curve)
     return sim_curves

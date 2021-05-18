@@ -14,7 +14,7 @@ def test_x962_curve():
         nbits = Integer(name[4:-2])
         print("bits:", nbits)
         p = ZZ(curve_dict['p'], 16)
-        res = x962.x962_curve(p, curve_dict['seed'], cofactor=0)
+        res = x962.x962_curve(curve_dict['seed'],p, cofactor=0)
         assert res != {}, "curve not found"
         assert utils.int_to_hex_string(p + res['a']) == curve_dict['A'], 'parameter a is not correct'
         assert utils.int_to_hex_string(res['b']) == curve_dict['B'] or utils.int_to_hex_string(p - res['b']) == \
@@ -59,6 +59,6 @@ def test_generate_brainpool_curves():
 
 
 if __name__ == '__main__':
-    test_brainpool_curve(speedup=False)
-    # test_x962_curve()
+    # test_brainpool_curve(speedup=False)
+    test_x962_curve()
     # test_generate_brainpool_curves()
