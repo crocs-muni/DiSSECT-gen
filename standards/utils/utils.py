@@ -3,7 +3,7 @@
 from sage.all import Integers, ZZ, ceil, floor, GF
 import hashlib
 
-STANDARDS = ['x962', 'brainpool', 'secg']
+STANDARDS = ['x962', 'brainpool', 'secg','nums','nist']
 
 
 def increment_seed(seed: str, i=1) -> str:
@@ -107,7 +107,7 @@ def seed_update(seed, offset, standard):
     """Defines incrementing/decrementing for large-scale generation of curves
     x962 generation is decrementing from std seed
     """
-    if standard in 'x962':
+    if standard == 'x962':
         return increment_seed(seed, -offset)
     return increment_seed(seed, offset)
 
