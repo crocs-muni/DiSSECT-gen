@@ -3,7 +3,7 @@ from sage.all import ZZ, EllipticCurve, GF
 
 
 def nums_curve(current_seed, prime: ZZ):
-    b = current_seed
+    b = ZZ(current_seed,16)
     cardinality = EllipticCurve(GF(prime), [-3, b]).__pari__().ellsea(1)
     cardinality = ZZ(cardinality)
     if cardinality == 0:

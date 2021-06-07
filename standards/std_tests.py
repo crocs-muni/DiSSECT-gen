@@ -3,6 +3,8 @@ from sage.all import Integer, ZZ
 
 import x962_gen as x962
 import brainpool_gen as brainpool
+import nums_gen as nums
+import nist_gen as nist
 import utils.utils as utils
 
 
@@ -14,7 +16,7 @@ def test_x962_curve():
         nbits = Integer(name[4:-2])
         print("bits:", nbits)
         p = ZZ(curve_dict['p'], 16)
-        res = x962.x962_curve(curve_dict['seed'],p, cofactor=0)
+        res = x962.x962_curve(curve_dict['seed'], p, cofactor=0)
         assert res != {}, "curve not found"
         assert utils.int_to_hex_string(p + res['a']) == curve_dict['A'], 'parameter a is not correct'
         assert utils.int_to_hex_string(res['b']) == curve_dict['B'] or utils.int_to_hex_string(p - res['b']) == \
@@ -58,7 +60,41 @@ def test_generate_brainpool_curves():
             assert len(curves) == 1
 
 
+def test_nums_curve():
+    """Testing of gen_curve on standardized nums curve"""
+    with open("parameters/test_parameters_nums.json", "r") as file:
+        secg = json.load(file)
+    for name, curve_dict in secg.items():
+        nbits = Integer(name[5:-2])
+        print("bits:", nbits)
+        p = ZZ(curve_dict['p'], 16)
+        res = nums.nums_curve(curve_dict['seed'], p)
+        assert res != {}, "curve not found"
+        assert res['a'] == ZZ(curve_dict['A'], 16), f"parameter a is not correct"
+        assert res['b'] == ZZ(curve_dict['B'], 16) or p - res['b'] == ZZ(curve_dict['B'],
+                                                                         16), 'parameter b is not correct'
+        assert utils.int_to_hex_string(p) == curve_dict['p'], 'underlying prime is not correct'
+
+
+def test_nist_curve():
+    """Testing of gen_curve on standardized nist curves"""
+    with open("parameters/test_parameters_nist.json", "r") as file:
+        secg = json.load(file)
+    for name, curve_dict in secg.items():
+        nbits = Integer(name[4:-2])
+        print("bits:", nbits)
+        p = ZZ(curve_dict['p'], 16)
+        res = nist.nist_curve(curve_dict['seed'], p, cofactor=0)
+        assert res != {}, "curve not found"
+        assert utils.int_to_hex_string(p + res['a']) == curve_dict['A'], 'parameter a is not correct'
+        assert utils.int_to_hex_string(res['b']) == curve_dict['B'] or utils.int_to_hex_string(p - res['b']) == \
+               curve_dict['B'], 'parameter b is not correct'
+        assert utils.int_to_hex_string(p) == curve_dict['p'], 'underlying prime is not correct'
+
+
 if __name__ == '__main__':
     # test_brainpool_curve(speedup=False)
-    test_x962_curve()
+    # test_x962_curve()
     # test_generate_brainpool_curves()
+    # test_nums_curve()
+    test_nist_curve()
