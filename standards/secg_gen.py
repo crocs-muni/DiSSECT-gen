@@ -27,7 +27,8 @@ def large_prime_factor(m: ZZ, bound: int):
 def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=100, verbose=False) -> dict:
     cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
     cardinality = Integer(cardinality)
-
+    if cardinality == 0:
+        return {}
     t = {192: 80, 512: 256}.get(prime.nbits(), prime.nbits() // 2)
     cofactor_bound = min(2 ** 20, 2 ** (t / 8))
     h = large_prime_factor(cardinality, cofactor_bound)

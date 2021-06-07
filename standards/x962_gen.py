@@ -22,6 +22,8 @@ def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=
     """Checks the security according to the standard"""
     cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
     cardinality = ZZ(cardinality)
+    if cardinality == 0:
+        return {}
     # a somewhat arbitrary bound (more strict than in the standard), but it will speed up the generation process
     r_min_bits = cardinality.nbits() - 5
     r_min = max(2 ** r_min_bits, 4 * sqrt(prime))
@@ -44,7 +46,7 @@ def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=
 
 def x962_curve(seed, p, cofactor):
     """Generates a x962 curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
-    return verifiably_random_curve(seed,p, cofactor, verify_security)
+    return verifiably_random_curve(seed, p, cofactor, verify_security)
 
 
 def random_point(a, b, p):
