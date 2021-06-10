@@ -94,6 +94,8 @@ def main():
         logger.info("Task %s finished, code: %s, fails: %s" % (r.job.idx, r.ret_code, r.job.failed_attempts))
         if r.ret_code != 0 and r.job.failed_attempts < 3:
             pr.enqueue(r.job)
+        # with open("error.txt",'w') as f:
+        #     f.write(r.stderr)
 
     pr.job_feeder = feeder
     pr.cb_job_prerun = prerun

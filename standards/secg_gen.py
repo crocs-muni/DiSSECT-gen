@@ -25,7 +25,10 @@ def large_prime_factor(m: ZZ, bound: int):
 
 
 def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=100, verbose=False) -> dict:
-    cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
+    try:
+        cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
+    except ArithmeticError:
+        return {}
     cardinality = Integer(cardinality)
     if cardinality == 0:
         return {}

@@ -20,7 +20,10 @@ def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255) -> dict:
 
 def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=20, verbose=False) -> dict:
     """Checks the security according to the standard"""
-    cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
+    try:
+        cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
+    except ArithmeticError:
+        return {}
     cardinality = ZZ(cardinality)
     if cardinality == 0:
         return {}

@@ -134,7 +134,11 @@ def brainpool_curve(prime: ZZ, seed: str, nbits: int) -> dict:
         if not check_discriminant(a, b, prime):
             seed = increment_seed(seed)
             continue
-        curve = EllipticCurve(field, [a, b])
+        try:
+            curve = EllipticCurve(field, [a, b])
+        except ArithmeticError:
+            seed = increment_seed(seed)
+            continue
         order = curve.__pari__().ellsea(1)
         if order == 0:
             seed = increment_seed(seed)
@@ -178,7 +182,12 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> dict:
             seed = increment_seed(seed)
             a = None
             continue
-        curve = EllipticCurve(field, [a, b])
+        try:
+            curve = EllipticCurve(field, [a, b])
+        except ArithmeticError:
+            a = None
+            seed = increment_seed(seed)
+            continue
         order = curve.__pari__().ellsea(1)
         if order == 0:
             seed = increment_seed(seed)

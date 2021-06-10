@@ -4,7 +4,10 @@ from sage.all import ZZ, EllipticCurve, GF
 
 def nums_curve(current_seed, prime: ZZ):
     b = ZZ(current_seed,16)
-    cardinality = EllipticCurve(GF(prime), [-3, b]).__pari__().ellsea(1)
+    try:
+        cardinality = EllipticCurve(GF(prime), [-3, b]).__pari__().ellsea(1)
+    except ArithmeticError:
+        return {}
     cardinality = ZZ(cardinality)
     if cardinality == 0:
         return {}
@@ -21,9 +24,8 @@ def nums_curve(current_seed, prime: ZZ):
 
     if not (cardinality - 1) / embedding_degree(prime=prime, order=cardinality) < 100:
         return {}
-    t = prime + 1 - cardinality
-    d = (t ** 2 - 4 * prime).squarefree_part()
-    d = d if d % 4 == 1 else 4 * d
+
+    d = ((prime + 1 - cardinality)**2-4*prime)
     if d.nbits() <= 100:
         return {}
     return {'a': prime - 3, 'b': b, 'order': cardinality, 'cofactor': 1}

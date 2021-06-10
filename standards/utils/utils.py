@@ -8,7 +8,8 @@ STANDARDS = ['x962', 'brainpool', 'secg','nums','nist']
 
 def increment_seed(seed: str, i=1) -> str:
     """Increments hex-string seed (without prefix) by i (can be negative)"""
-    g = ZZ(seed, 16).nbits()
+    g = len(seed)*4
+    g = g%8+g
     f = "0" + str(len(seed)) + "X"
     return format(ZZ(Integers(2 ** g)(ZZ(seed, 16) + i)), f)
 
