@@ -61,6 +61,7 @@ def main():
     parser.add_argument('-u', '--cofactor', type=int, default=0, help="If equal to 1, the cofactor is forced to 1")
     parser.add_argument("-o", "--offset", type=int, default=0, help="")
     parser.add_argument("-p", "--config_path", default=None, help="")
+    parser.add_argument("--analysis",default=False,action='store_true')
     parser.add_argument("-r", "--results", default='results', help="Where to store experiment results")
     args = parser.parse_args()
     print(args)
@@ -73,7 +74,9 @@ def main():
     result_dir = os.path.join(args.results, standard, str(bits))
     os.makedirs(result_dir, exist_ok=True)
     script_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-    wrapper_path = os.path.join(script_path, 'standards', f'{standard}_wrapper.py')
+
+    wrapper_name = 'analysis.py' if args.analysis else f'{standard}_wrapper.py'
+    wrapper_path = os.path.join(script_path, 'standards', wrapper_name)
 
     pr = ParallelRunner()
     pr.parallel_tasks = args.tasks
