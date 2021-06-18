@@ -24,7 +24,7 @@ def large_prime_factor(m: ZZ, bound: int):
     return False
 
 
-def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=100, verbose=False) -> dict:
+def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=2, embedding_degree_bound=100, verbose=False) -> dict:
     try:
         cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
     except ArithmeticError:
@@ -32,8 +32,8 @@ def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=
     cardinality = Integer(cardinality)
     if cardinality == 0:
         return {}
-    t = {192: 80, 512: 256}.get(prime.nbits(), prime.nbits() // 2)
-    cofactor_bound = min(2 ** 20, 2 ** (t / 8))
+    #t = {192: 80, 512: 256}.get(prime.nbits(), prime.nbits() // 2)
+    cofactor_bound = 4#2 ** (t / 8)
     h = large_prime_factor(cardinality, cofactor_bound)
     if not h:
         return {}
@@ -75,7 +75,7 @@ def sec_curve(seed,p, cofactor):
     return verifiably_random_curve(seed,p, cofactor, verify_security)
 
 
-def generate_sec_curves(count, p, seed, cofactor_one=False):
+def generate_sec_curves(count, p, seed, cofactor_one=2):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     """
     curves = []
