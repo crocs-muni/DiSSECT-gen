@@ -58,7 +58,7 @@ def gen_point(seed: str, p: ZZ, curve: EllipticCurve, h: ZZ):
     c = 1
     while True:
         r = bytes("Base point", 'ASCII') + bytes([1]) + bytes([c]) + bytes.fromhex(seed)
-        e = ZZ(sha1(r.hex()), 16)
+        e = ZZ(sha1(r.hex()))
         t = e % (2 * p)
         x, z = t % p, t // p
         c += 1
@@ -70,20 +70,20 @@ def gen_point(seed: str, p: ZZ, curve: EllipticCurve, h: ZZ):
             return curve(x, y) * h
 
 
-def sec_curve(seed,p, cofactor):
+def sec_curve(seed,p, cofactor=2):
     """Generates a SEC curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
     return verifiably_random_curve(seed,p, cofactor, verify_security)
 
 
-def generate_sec_curves(count, p, seed, cofactor_one=2):
+def generate_sec_curves(count, p, seed, cofactor_bound=2):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     """
+    cofactor = cofactor_bound if cofactor_bound>0 else 2
     curves = []
     for i in range(1, count + 1):
         current_seed = increment_seed(seed, -i)
-        curve = sec_curve(current_seed, p, cofactor_one)
+        curve = sec_curve(current_seed, p, cofactor)
         if curve:
-            curve['generator'] = (ZZ(0), ZZ(0))
             curve['seed'] = current_seed
             curve['prime'] = p
             curves.append(curve)

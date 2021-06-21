@@ -8,21 +8,21 @@ STANDARDS = ['x962', 'brainpool', 'secg','nums','nist']
 
 def increment_seed(seed: str, i=1) -> str:
     """Increments hex-string seed (without prefix) by i (can be negative)"""
-    g = len(seed)*4
+    g = len(seed)*4-8
     g = g%8+g
-    f = "0" + str(len(seed)) + "X"
-    return format(ZZ(Integers(2 ** g)(ZZ(seed, 16) + i)), f)
+    f = "0" + str(len(seed)-2) + "x"
+    return '0x'+format(ZZ(Integers(2 ** g)(ZZ(seed) + i)), f)
 
 
 def sha1(x: str) -> str:
     """Returns sha1 value of hex-string x (without prefix) in hex-string"""
-    return hashlib.sha1(bytes.fromhex(x)).hexdigest()
+    return '0x'+hashlib.sha1(bytes.fromhex(x[2:])).hexdigest()
 
 
-def int_to_hex_string(x: ZZ) -> str:
+def int_to_hex_string(x: ZZ, prefix = True) -> str:
     """Converts int to hex string (without prefix)"""
-    f = "0" + str(ceil(x.nbits() / 8) * 2) + "X"
-    return format(ZZ(x, 16), f)
+    f = "0" + str(ceil(x.nbits() / 8) * 2) + "x"
+    return prefix*"0x"+format(x, f)
 
 
 def embedding_degree(prime: ZZ, order: int) -> int:
@@ -32,7 +32,7 @@ def embedding_degree(prime: ZZ, order: int) -> int:
 
 def rightmost_bits(h: str, nbits: int) -> str:
     """Returns nbits of rightmost bits of hex-string h"""
-    return int_to_hex_string(ZZ(h, 16) & ((1 << nbits) - 1))
+    return int_to_hex_string(ZZ(h) & ((1 << nbits) - 1))
 
 
 def find_integer(seed: str, nbits: int, brainpool_prime=False) -> ZZ:
@@ -40,10 +40,10 @@ def find_integer(seed: str, nbits: int, brainpool_prime=False) -> ZZ:
     modified = True corresponds to find_integer2 as defined by Brainpool"""
     v = floor((nbits - 1) / 160)
     w = nbits - 160 * v - (1 - brainpool_prime)
-    h = bytes.fromhex(rightmost_bits(sha1(seed), w))
+    h = bytes.fromhex(rightmost_bits(sha1(seed), w)[2:])
     for i in range(1, v + 1):
         s_i = rightmost_bits(increment_seed(seed, i), 160)
-        h += hashlib.sha1(bytes.fromhex(s_i)).digest()
+        h += hashlib.sha1(bytes.fromhex(s_i[2:])).digest()
     return ZZ(h.hex(), 16)
 
 
@@ -59,7 +59,7 @@ def verifiably_random_curve(seed: str, prime: ZZ, cofactor: int, security_functi
     """Generates verifiably random curve (dictionary)"""
     r = find_integer(seed, prime.nbits())
     b = get_b_from_r(r, prime)
-    a = ZZ(-3)
+    a = ZZ(prime-3)
     if b is None or (4 * a ** 3 + 27 * b ** 2) % prime == 0:
         return {}
     curve = security_function(a=a, b=b, prime=prime, cofactor=cofactor)
@@ -81,20 +81,24 @@ def curves_json_wrap(curves: list, p: ZZ, tries: int, seed: str, standard: str) 
         "seeds_successful": len(curves),
     }
     for curve in curves:
+        if not "generator" in curve:
+            generator = ["",""]
+        else:
+            generator = map(lambda x: int_to_hex_string(x),curve['generator'])
         sim_curve = {
             "name": f"{standard}_sim_" + str(p.nbits()) + "_" + curve['seed'],
             "category": sim_curves["name"],
             "desc": "",
             "field": {
                 "type": "Prime",
-                "p": int_to_hex_string(p),
+                "p": int_to_hex_string(p,prefix = True),
                 "bits": p.nbits(),
             },
             "form": "Weierstrass",
-            "params": {"a": {"raw": int_to_hex_string(curve['a'])},
-                       "b": {"raw": int_to_hex_string(curve['b'])}},
-            "generator": {"x": {"raw": int_to_hex_string(curve['generator'][0])},
-                          "y": {"raw": int_to_hex_string(curve['generator'][1])}},
+            "params": {"a": {"raw": int_to_hex_string(curve['a'],prefix = True)},
+                       "b": {"raw": int_to_hex_string(curve['b'],prefix = True)}},
+            "generator": {"x": {"raw": generator[0]},
+                          "y": {"raw": generator[1]}},
             "order": curve['order'],
             "cofactor": curve['cofactor'],
             "characteristics": None,

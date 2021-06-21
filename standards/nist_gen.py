@@ -31,7 +31,7 @@ def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=
     return curve
 
 
-def nist_curve(seed, p, cofactor):
+def nist_curve(seed, p, cofactor=0):
     """Generates a nist curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
     return verifiably_random_curve(seed, p, cofactor, verify_security)
 
@@ -50,7 +50,6 @@ def generate_nist_curves(count, p, seed, cofactor_one=False):
         current_seed = increment_seed(seed, -i)
         curve = nist_curve(current_seed, p, cofactor_one)
         if curve:
-            curve['generator'] = (ZZ(0), ZZ(0))
             curve['seed'] = current_seed
             curve['prime'] = p
             curves.append(curve)

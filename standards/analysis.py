@@ -9,7 +9,7 @@ from nums_gen import generate_nums_curves
 
 
 def nums_curve(current_seed, prime: ZZ):
-    b = ZZ(current_seed,16)
+    b = ZZ(current_seed)
     try:
         cardinality = EllipticCurve(GF(prime), [-3, b]).__pari__().ellsea(1)
     except ArithmeticError:

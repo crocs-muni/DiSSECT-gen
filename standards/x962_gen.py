@@ -84,7 +84,6 @@ def generate_x962_curves(count, p, seed, cofactor_one=False):
         current_seed = increment_seed(seed, -i)
         curve = x962_curve(current_seed, p, cofactor_one)
         if curve:
-            curve['generator'] = (ZZ(0), ZZ(0))
             curve['seed'] = current_seed
             curve['prime'] = p
             curves.append(curve)
