@@ -143,8 +143,8 @@ class VerifiableCurve(ABC):
 
     def properties(self):
         self.compute_properties()
-        return {"cm_discriminant": self._cm, "embedding_degree": self._embedding_degree, "trace": self.trace(),
-                "j_invariant": self._j_invariant}
+        return {"cm_discriminant": hex(self._cm), "embedding_degree": hex(self._embedding_degree),
+                "trace": hex(self.trace()),"j_invariant": hex(self._j_invariant)}
 
     def generator(self):
         if self._generator is None:
@@ -253,4 +253,3 @@ class IntegerEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
         except TypeError:
             return str(obj)
-
