@@ -3,7 +3,8 @@
     https://www.secg.org/sec1-v2.pdf
 """
 
-from utils.utils import embedding_degree, sha1, verifiably_random_curve, increment_seed, curves_json_wrap
+from utils import sha1, SimulatedCurves
+from x962_gen import X962
 from sage.all import ZZ, floor, GF, Integer, EllipticCurve
 
 
@@ -24,67 +25,65 @@ def large_prime_factor(m: ZZ, bound: int):
     return False
 
 
-def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=2, embedding_degree_bound=100, verbose=False) -> dict:
-    try:
-        cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
-    except ArithmeticError:
-        return {}
-    cardinality = Integer(cardinality)
-    if cardinality == 0:
-        return {}
-    #t = {192: 80, 512: 256}.get(prime.nbits(), prime.nbits() // 2)
-    cofactor_bound = 4#2 ** (t / 8)
-    h = large_prime_factor(cardinality, cofactor_bound)
-    if not h:
-        return {}
-    curve = {'cofactor': h, 'order': cardinality // h}
-    if verbose:
-        print("Checking MOV")
-    if embedding_degree(prime, curve['order']) < embedding_degree_bound:
-        return {}
-    if verbose:
-        print("Checking if curve is anomalous")
-    if prime == cardinality:
-        return {}
-    n_1_bound = floor(curve['order'] ** (1 - 19 / 20))
-    if not (large_prime_factor(curve['order'] - 1, n_1_bound) and large_prime_factor(curve['order'] + 1, n_1_bound)):
-        return {}
-    curve['a'], curve['b'] = a, b
-    return curve
+class SECG(X962):
+    def __init__(self, seed, p, cofactor_bound=4, cofactor_div=2):
+        super().__init__(seed, p, cofactor_bound, cofactor_div)
+        self._standard = "secg"
+        self._category = "secg"
+        self._embedding_degree_bound = 100
 
-
-def gen_point(seed: str, p: ZZ, curve: EllipticCurve, h: ZZ):
-    """Returns generator as specified in SEC, currently not using"""
-    c = 1
-    while True:
-        r = bytes("Base point", 'ASCII') + bytes([1]) + bytes([c]) + bytes.fromhex(seed)
-        e = ZZ(sha1(r.hex()))
-        t = e % (2 * p)
-        x, z = t % p, t // p
-        c += 1
+    def order_check(self):
         try:
-            y = curve.lift_x(x)[1]
-        except ValueError:
-            continue
-        if Integer(y) % 2 == z:
-            return curve(x, y) * h
+            cardinality = EllipticCurve(GF(self._p), [self._a, self._b]).__pari__().ellsea(self._cofactor_div)
+        except ArithmeticError:
+            return False
+        cardinality = Integer(cardinality)
+        if cardinality == 0:
+            return False
+        cofactor = large_prime_factor(cardinality, self._cofactor_bound)
+        self._cardinality = cardinality
+        if not cofactor:
+            return False
+        self._order, self._cofactor = cardinality // cofactor, cofactor
+        return True
+
+    def security(self):
+        super().security()
+        if not self._secure:
+            return
+        n_1_bound = floor(self._order ** (1 - 19 / 20))
+        if not (large_prime_factor(self._order - 1, n_1_bound) and large_prime_factor(self._order + 1, n_1_bound)):
+            return
+        self._secure = True
+
+    def generate_generator(self):
+        """Returns generator as specified in SEC, currently not using"""
+        c = 1
+        while True:
+            r = bytes("Base point", 'ASCII') + bytes([1]) + bytes([c]) + bytes.fromhex(seed)
+            e = ZZ(sha1(r.hex()))
+            t = e % (2 * self._p)
+            x, z = t % self._p, t // self._p
+            c += 1
+            try:
+                y = self.curve().lift_x(x)[1]
+            except ValueError:
+                continue
+            if Integer(y) % 2 == z:
+                return self.curve()(x, y) * self._cofactor
 
 
-def sec_curve(seed,p, cofactor=2):
-    """Generates a SEC curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
-    return verifiably_random_curve(seed,p, cofactor, verify_security)
-
-
-def generate_sec_curves(count, p, seed, cofactor_bound=2):
+def generate_secg_curves(count, p, seed, cofactor_bound=4, cofactor_div=2):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     """
-    cofactor = cofactor_bound if cofactor_bound>0 else 2
-    curves = []
-    for i in range(1, count + 1):
-        current_seed = increment_seed(seed, -i)
-        curve = sec_curve(current_seed, p, cofactor)
-        if curve:
-            curve['seed'] = current_seed
-            curve['prime'] = p
-            curves.append(curve)
-    return curves_json_wrap(curves, p, count, seed, 'secg')
+    simulated_curves = SimulatedCurves("secg", p, seed, count)
+    curve = SECG(seed, p, cofactor_bound=cofactor_bound, cofactor_div=cofactor_div)
+    for _ in range(count):
+        if not curve.secure():
+            curve.seed_update()
+            continue
+        curve.compute_properties()
+        simulated_curves.add_curve(curve)
+        curve = SECG(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+        curve.seed_update()
+    return simulated_curves

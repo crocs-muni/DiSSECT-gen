@@ -1,9 +1,8 @@
-from random import randint
-from utils.utils import increment_seed, embedding_degree, verifiably_random_curve, curves_json_wrap
-from sage.all import Integers, ZZ, GF, EllipticCurve, prime_range, is_pseudoprime, sqrt
+from utils import increment_seed, embedding_degree, SimulatedCurves, VerifiableCurve, find_integer, get_b_from_r
+from sage.all import ZZ, GF, EllipticCurve, prime_range, is_pseudoprime, sqrt
 
 
-def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255) -> dict:
+def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255, cofactor_bound=None) -> dict:
     """Verifying near primality according to the standard"""
     n = u
     h = 1
@@ -11,80 +10,88 @@ def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255) -> dict:
         while n % prime == 0:
             n = ZZ(n / prime)
             h = h * prime
+            if cofactor_bound is not None and h > cofactor_bound:
+                return {}
             if n < r_min:
                 return {}
+    if n < r_min:
+        return {}
     if is_pseudoprime(n):
         return {'cofactor': h, 'order': n}
     return {}
 
 
-def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=20, verbose=False) -> dict:
-    """Checks the security according to the standard"""
-    try:
-        cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
-    except ArithmeticError:
-        return {}
-    cardinality = ZZ(cardinality)
-    if cardinality == 0:
-        return {}
-    # a somewhat arbitrary bound (more strict than in the standard), but it will speed up the generation process
-    r_min_bits = cardinality.nbits() - 5
-    r_min = max(2 ** r_min_bits, 4 * sqrt(prime))
-    if verbose:
-        print("Checking near-primality of", cardinality)
-    curve = verify_near_primality(cardinality, r_min)
-    if not curve:
-        return {}
-    if verbose:
-        print("Checking MOV")
-    if embedding_degree(prime, curve['order']) < embedding_degree_bound:
-        return {}
-    if verbose:
-        print("Checking if curve is anomalous")
-    if prime == cardinality:
-        return {}
-    curve['a'], curve['b'] = a, b
-    return curve
+class X962(VerifiableCurve):
+    def __init__(self, seed, p, cofactor_bound=None, cofactor_div=0):
+        super().__init__(seed, p, cofactor_bound, cofactor_div)
+        self._standard = "x962"
+        self._category = "x962"
+        self._embedding_degree_bound = 20
+        self._rmin = None
+
+    def coefficients_check(self):
+        if self._b is None or (4 * self._a ** 3 + 27 * self._b ** 2) % self._p == 0:
+            return False
+
+    def order_check(self):
+        try:
+            cardinality = EllipticCurve(GF(self._p), [self._a, self._b]).__pari__().ellsea(self._cofactor_div)
+        except ArithmeticError:
+            return False
+        self._cardinality = ZZ(cardinality)
+        if self._cardinality == 0:
+            return False
+        # a somewhat arbitrary bound (more strict than in the standard), but it will speed up the generation process
+        r_min_bits = self._cardinality.nbits() - 5
+        r_min = max(2 ** r_min_bits, 4 * sqrt(self._p)) if self._rmin is None else self._rmin
+        curve = verify_near_primality(self._cardinality, r_min, cofactor_bound=self._cofactor_bound)
+        if not curve:
+            return False
+        self._order, self._cofactor = curve['order'], curve['cofactor']
+        return True
+
+    def security(self):
+        self._secure = self.coefficients_check()
+        if not self.order_check():
+            return
+        self._embedding_degree = embedding_degree(self._p, self._order)
+        if self._embedding_degree < self._embedding_degree_bound:
+            return
+        if self._p == self._cardinality:
+            return
+        self._secure = True
+
+    def set_ab(self):
+        r = find_integer(self._seed, self._p.nbits())
+        b = get_b_from_r(r, self._p)
+        if b is None:
+            return
+        self._b = ZZ(min(b, self._p - b))
+        self._a = ZZ(self._p - 3)
+
+    def seed_update(self, offset=1):
+        self._seed = increment_seed(self._seed, offset)
+        self._secure = None
+        self.set_ab()
+
+    def find_curve(self):
+        while not self.secure():
+            self.seed_update()
+        self.compute_properties()
 
 
-def x962_curve(seed, p, cofactor):
-    """Generates a x962 curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
-    return verifiably_random_curve(seed, p, cofactor, verify_security)
-
-
-def random_point(a, b, p):
-    """Generates a random point according to the standard. Currently not used."""
-    while True:
-        x = randint(0, p)
-        y2 = (x ** 3 + a * x + b) % p
-        if y2 == 0:
-            return x, 0
-        if not y2.is_square():
-            continue
-        return x, ZZ(Integers(p)(y2).sqrt())
-
-
-def generate_point(a, b, h, p):
-    """Generates a generator for a curve according to the standards. Currently not used."""
-    curve = EllipticCurve(GF(p), [a, b])
-    while True:
-        r = curve(*random_point(a, b, p))
-        g = h * r
-        if g == curve(0):
-            continue
-        return g
-
-
-def generate_x962_curves(count, p, seed, cofactor_one=False):
+def generate_x962_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
     """Generates at most #count curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
-    curves = []
-    for i in range(1, count + 1):
-        current_seed = increment_seed(seed, -i)
-        curve = x962_curve(current_seed, p, cofactor_one)
-        if curve:
-            curve['seed'] = current_seed
-            curve['prime'] = p
-            curves.append(curve)
-    return curves_json_wrap(curves, p, count, seed, 'x962')
+    simulated_curves = SimulatedCurves("x962", p, seed, count)
+    curve = X962(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+    for _ in range(count):
+        if not curve.secure():
+            curve.seed_update()
+            continue
+        curve.compute_properties()
+        simulated_curves.add_curve(curve)
+        curve = X962(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+        curve.seed_update()
+    return simulated_curves

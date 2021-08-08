@@ -1,56 +1,24 @@
-from utils.utils import increment_seed, embedding_degree, verifiably_random_curve, curves_json_wrap, sha1
-from sage.all import ZZ, GF, EllipticCurve
-import x962_gen as x962
-import secg_gen as secg
+from utils import SimulatedCurves
+from x962_gen import X962
 
 
-def verify_security(a: ZZ, b: ZZ, prime: ZZ, cofactor=0, embedding_degree_bound=100, verbose=False) -> dict:
-    """Checks the security according to the standard"""
-    try:
-        cardinality = EllipticCurve(GF(prime), [a, b]).__pari__().ellsea(cofactor)
-    except ArithmeticError:
-        return {}
-    cardinality = ZZ(cardinality)
-    if cardinality == 0:
-        return {}
-    r_min = max(2 ** (prime.nbits() - 1), 2 ** 160)
-    if verbose:
-        print("Checking near-primality of", cardinality)
-    curve = x962.verify_near_primality(cardinality, r_min)
-    if not curve:
-        return {}
-    if verbose:
-        print("Checking MOV")
-    if embedding_degree(prime, curve['order']) < embedding_degree_bound:
-        return {}
-    if verbose:
-        print("Checking if curve is anomalous")
-    if prime == cardinality:
-        return {}
-    curve['a'], curve['b'] = a, b
-    return curve
+class NIST(X962):
+    def __init__(self, seed, p, cofactor_bound=None, cofactor_div=0):
+        super().__init__(seed, p, cofactor_bound, cofactor_div)
+        self._standard = "nist"
+        self._category = "nist"
+        self._embedding_degree_bound = 100
+        self._rmin = max(2 ** (self._p.nbits() - 1), 2 ** 160)
 
 
-def nist_curve(seed, p, cofactor=0):
-    """Generates a nist curve out of seed over Fp of any cofactor if cofactor!=1 otherwise cofactor=1"""
-    return verifiably_random_curve(seed, p, cofactor, verify_security)
-
-
-def generate_point(seed: str, p: ZZ, curve: EllipticCurve, h: ZZ):
-    """Returns generator, currently not using"""
-    return secg.gen_point(seed, p, curve, h)
-
-
-def generate_nist_curves(count, p, seed, cofactor_one=False):
-    """Generates at most #count curves according to the standard
-    The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
-    """
-    curves = []
-    for i in range(1, count + 1):
-        current_seed = increment_seed(seed, -i)
-        curve = nist_curve(current_seed, p, cofactor_one)
-        if curve:
-            curve['seed'] = current_seed
-            curve['prime'] = p
-            curves.append(curve)
-    return curves_json_wrap(curves, p, count, seed, 'nist')
+def generate_nist_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
+    simulated_curves = SimulatedCurves("nist", p, seed, count)
+    curve = NIST(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+    for _ in range(count):
+        if not curve.secure():
+            curve.seed_update()
+            continue
+        simulated_curves.add_curve(curve)
+        curve = NIST(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+        curve.seed_update()
+    return simulated_curves

@@ -5,7 +5,8 @@
     "p": "0XDB7C2ABF62E35E668076BEAD208B",
     "A": "0XDB7C2ABF62E35E668076BEAD2088",
     "B": "0X4430520C7392E431C6D05886197F",
-    "order": "0x6dbe155fb171aebdb635f7e0bebd"
+    "order": "0x6dbe155fb171aebdb635f7e0bebd",
+    "cofactor": "0x02"
   },
   "fakesec160": {
     "bits": 160,
@@ -13,6 +14,7 @@
     "p": "0XFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFF",
     "A": "0XFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFC",
     "B": "0X098A27E6429FCF5E5DD8B744BAEEF9659B14CA54",
-    "order": "0xfffffffffffffffffffeae06711121e45ed7643f"
+    "order": "0xfffffffffffffffffffeae06711121e45ed7643f",
+    "cofactor": "0x01"
   }
 }

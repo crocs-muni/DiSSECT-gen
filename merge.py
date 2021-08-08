@@ -4,8 +4,7 @@ import json
 import argparse
 import os
 
-from standards.utils.json_handler import IntegerEncoder
-from standards.utils.utils import seed_update, seed_order, STANDARDS
+from standards.utils import IntegerEncoder, seed_order, STANDARDS, increment_seed
 
 RESULTS_DIR = 'results'
 
@@ -24,13 +23,13 @@ def save_into_file(merged_name: str, merged: dict, results_path: str):
     os.rename(merged_name_tmp, merged_name)
 
 
-def merge_dictionaries(file_name: str, merged: dict, original_seed: str, standard: str, verbose=False):
+def merge_dictionaries(file_name: str, merged: dict, original_seed: str, verbose=False):
     """Merges dictionary from a file (file_name) with the rest of results in dictionary (merged)"""
     with open(file_name, "r") as f:
         results = json.load(f)
     if verbose:
         print("Merging ", file_name, "...")
-    expected_initial_seed = seed_update(original_seed, merged["seeds_tried"], standard)
+    expected_initial_seed = increment_seed(original_seed, merged["seeds_tried"])
     if merged['seeds_tried'] == 0:
         merged.update(results)
     else:
@@ -49,7 +48,7 @@ def get_initial_seed(path, ordered_files):
     return results['initial_seed']
 
 
-def merge(std: str, path_to_results: str, verbose=False):
+def merge(path_to_results: str, verbose=False):
     """Merges results of the standard (std)"""
     bit_sizes = [f.name for f in os.scandir(path_to_results) if f.is_dir()]
     for bit_size in bit_sizes:
@@ -58,10 +57,10 @@ def merge(std: str, path_to_results: str, verbose=False):
             continue
         merged = {"seeds_tried": 0}
         root, _, files = list(os.walk(results_path))[0]
-        ordered_files = seed_order(files, std)
+        ordered_files = seed_order(files)
         initial_seed = get_initial_seed(root, ordered_files)
         for file in ordered_files:
-            merge_dictionaries(str(os.path.join(root, file)), merged, initial_seed, std, verbose)
+            merge_dictionaries(str(os.path.join(root, file)), merged, initial_seed, verbose)
 
         merged_name = os.path.join(results_path, f'{str(merged["seeds_tried"])}_{str(bit_size)}_{initial_seed}.json')
         save_into_file(merged_name, merged, results_path)
@@ -83,7 +82,7 @@ def main():
         stds = [args.standard]
     for std in stds:
         path_to_std = os.path.join(path_to_results, std)
-        merge(std, path_to_std, verbose=args.verbose)
+        merge(path_to_std, verbose=args.verbose)
 
 
 if __name__ == '__main__':

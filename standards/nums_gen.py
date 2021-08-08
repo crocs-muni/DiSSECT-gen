@@ -1,45 +1,70 @@
-from utils.utils import curves_json_wrap, embedding_degree, increment_seed
+from utils import embedding_degree, increment_seed, VerifiableCurve, SimulatedCurves
 from sage.all import ZZ, EllipticCurve, GF
 
 
-def nums_curve(current_seed, prime: ZZ):
-    b = ZZ(current_seed)
-    try:
-        cardinality = EllipticCurve(GF(prime), [-3, b]).__pari__().ellsea(1)
-    except ArithmeticError:
-        return {}
-    cardinality = ZZ(cardinality)
-    if cardinality == 0:
-        return {}
-    if not cardinality.is_prime():
-        return {}
-    twist_card = 2 * (prime + 1) - cardinality
+class NUMS(VerifiableCurve):
+    def __init__(self, seed, p):
+        super().__init__(seed, p, cofactor_bound=1, cofactor_div=1)
+        self._standard = "nums"
+        self._category = "nums"
+        self._cofactor = 1
 
-    if prime <= cardinality:
-        b = prime - b
-        cardinality = twist_card
+    def set_ab(self):
+        self._b = ZZ(self._seed)
+        self._a = ZZ(self._p - 3)
 
-    if not twist_card.is_prime():
-        return {}
+    def security(self):
+        self._secure = False
+        try:
+            cardinality = EllipticCurve(GF(self._p), [-3, self._b]).__pari__().ellsea(1)
+        except ArithmeticError:
+            return 
+        cardinality = ZZ(cardinality)
+        if cardinality == 0:
+            return
+        if not cardinality.is_prime():
+            return
+        twist_card = 2 * (self._p + 1) - cardinality
 
-    if not (cardinality - 1) / embedding_degree(prime=prime, order=cardinality) < 100:
-        return {}
+        if self._p <= cardinality:
+            self._b = self._p - self._b
+            cardinality = twist_card
 
-    d = ((prime + 1 - cardinality)**2-4*prime)
-    if d.nbits() <= 100:
-        return {}
-    return {'a': prime - 3, 'b': b, 'order': cardinality, 'cofactor': 1}
+        if not twist_card.is_prime():
+            return
+
+        self._embedding_degree = embedding_degree(prime=self._p, order=cardinality)
+        if not (cardinality - 1) / self._embedding_degree < 100:
+            return
+        d = ((self._p + 1 - cardinality) ** 2 - 4 * self._p)
+        if d.nbits() <= 100:
+            return
+        self._cardinality = cardinality
+        self._order = cardinality
+        self._secure = True
+
+    def seed_update(self, offset=1):
+        self._seed = increment_seed(self._seed, offset)
+        self._secure = None
+        self.set_ab()
+
+    def find_curve(self):
+        while not self.secure():
+            self.seed_update()
+        self.compute_properties()
 
 
-def generate_nums_curves(count, p, seed):
+def generate_nums_curves(count, p, seed, cofactor, cofactor_div):
     """Generates at most #count curves according to the standard
     """
-    curves = []
-    for i in range(1, count + 1):
-        current_seed = increment_seed(seed, i)
-        curve = nums_curve(current_seed, p)
-        if curve:
-            curve['seed'] = current_seed
-            curve['prime'] = p
-            curves.append(curve)
-    return curves_json_wrap(curves, p, count, seed, 'nums')
+    simulated_curves = SimulatedCurves("nums", p, seed, count)
+    curve = NUMS(seed, p)
+    for _ in range(count):
+        if not curve.secure():
+            curve.seed_update()
+            continue
+        curve.compute_properties()
+        simulated_curves.add_curve(curve)
+        curve = NUMS(curve.seed(), p)
+        curve.seed_update()
+    return simulated_curves

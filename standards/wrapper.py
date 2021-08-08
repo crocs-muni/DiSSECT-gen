@@ -9,23 +9,27 @@ After experiment is finished, the script writes results to the output file.
 """
 
 import argparse
+import json
 from sage.all import ZZ
-
-from utils.json_handler import save_into_json
-from nums_gen import generate_nums_curves
+from utils import IntegerEncoder
 
 
 def main():
     parser = argparse.ArgumentParser(description="Sage experiment runner")
 
+    parser.add_argument('--standard', help='which standard do you want to simulate')
     parser.add_argument("-c", "--count", action="store", help="")
     parser.add_argument("-p", "--prime", action="store", help="")
     parser.add_argument("-s", "--seed", action="store", help="")
-    parser.add_argument("-u", "--cofactor", action="store", help="")
+    parser.add_argument("-u", "--cofactor", action="store", default=None, help="")
+    parser.add_argument("-ud", "--cofactor_div", action="store", default=0, help="")
     parser.add_argument("-f", "--outfile", action="store", help="")
     args = parser.parse_args()
-    results = generate_nums_curves(ZZ(args.count), ZZ(args.prime), args.seed)
-    save_into_json(results, args.outfile, mode="w+")
+    gen_function = getattr(__import__(f"{args.standard}_gen"), f"generate_{args.standard}_curves")
+    cofactor = ZZ(args.cofactor) if args.cofactor is not None else None
+    results = gen_function(ZZ(args.count), ZZ(args.prime), args.seed, cofactor, ZZ(args.cofactor_div))
+    with open(args.outfile, "w+") as f:
+        json.dump(results.json_export(), f, indent=2, cls=IntegerEncoder)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import logging
 import os
 from sage.all import ZZ
 from job_manager.manager import ParallelRunner, Task, TaskResult
-from standards.utils.utils import seed_update
+from standards.utils import increment_seed
 
 try:
     import coloredlogs
@@ -24,19 +24,19 @@ def get_file_name(params: list, result_dir=None) -> str:
     return file_name if result_dir is None else os.path.join(result_dir, file_name)
 
 
-def load_parameters(standard: str, config_path: str, num_bits: int, cofactor: int, total_count: int, count: int,
+def load_parameters(config_path: str, num_bits: int, total_count: int, count: int,
                     offset: int, result_dir=None) -> dict:
     """Loads the parameters from the config file (prime,seed)"""
     with open(config_path, "r") as f:
         params = json.load(f)
         p, initial_seed = params["%s" % num_bits]
-    curve_seed = seed_update(initial_seed, offset, standard)
+    curve_seed = increment_seed(initial_seed, offset)
     while total_count > 0:
         c = total_count if total_count < count else count
         f = get_file_name([c, ZZ(p).nbits(), curve_seed], result_dir)
-        yield {"count": c, "prime": p, "seed": curve_seed, "outfile": f, "cofactor": cofactor}
+        yield {"count": c, "prime": p, "seed": curve_seed, "outfile": f}
         total_count -= count
-        curve_seed = seed_update(curve_seed, count, standard)
+        curve_seed = increment_seed(curve_seed, count)
 
 
 def check_config_file(config_file, bits):
@@ -58,10 +58,11 @@ def main():
     parser.add_argument("-c", "--count", type=int, default=16, help="")
     parser.add_argument("-t", "--total_count", dest="total_count", type=int, default=32, help="")
     parser.add_argument("-b", "--bits", type=int, default=0, help="")
-    parser.add_argument('-u', '--cofactor', type=int, default=0, help="If equal to 1, the cofactor is forced to 1")
+    parser.add_argument('-u', '--cofactor', type=int, default=None, help="Upper bound on the cofactor")
+    parser.add_argument("-ud", "--cofactor_div", action="store", default=0,
+                        help="Every prime divisor of cofactor must divide this parameter")
     parser.add_argument("-o", "--offset", type=int, default=0, help="")
     parser.add_argument("-p", "--config_path", default=None, help="")
-    parser.add_argument("--analysis",default=False,action='store_true')
     parser.add_argument("-r", "--results", default='results', help="Where to store experiment results")
     args = parser.parse_args()
     print(args)
@@ -75,7 +76,7 @@ def main():
     os.makedirs(result_dir, exist_ok=True)
     script_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
-    wrapper_name = 'analysis.py' if args.analysis else f'{standard}_wrapper.py'
+    wrapper_name = 'wrapper.py'
     wrapper_path = os.path.join(script_path, 'standards', wrapper_name)
 
     pr = ParallelRunner()
@@ -83,9 +84,13 @@ def main():
 
     def feeder():
         """Generates computing jobs"""
-        for p in load_parameters(args.standard, config_path, bits, args.cofactor, args.total_count, args.count,
-                                 args.offset, result_dir):
-            cli = " ".join(["--%s=%s" % (k, p[k]) for k in p.keys()])
+        for p in load_parameters(config_path, bits, args.total_count, args.count, args.offset, result_dir):
+            arguments = p
+            arguments["standard"] = standard
+            if args.cofactor is not None:
+                arguments['cofactor'] = args.cofactor
+            arguments['cofactor_div'] = args.cofactor_div
+            cli = " ".join(["--%s=%s" % (k, a) for k,a in arguments.items()])
             yield Task(args.interpreter, "%s %s" % (wrapper_path, cli))
 
     def prerun(j: Task):
