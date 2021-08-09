@@ -4,14 +4,14 @@ import x962_gen as x962
 import brainpool_gen as brainpool
 import secg_gen as secg
 import nums_gen as nums
+import bls_gen as bls
 from abc import ABC, abstractmethod
 from sage.all import ZZ, EllipticCurve, GF
 
 
 class CurveTests(ABC):
 
-    @staticmethod
-    def set_up(path, bits_bound=256):
+    def set_up(self, path, bits_bound=256):
         with open(path, "r") as file:
             curves = json.load(file)
         return {k: v for k, v in list(curves.items()) if bits_bound >= ZZ(v["bits"])}
@@ -29,9 +29,9 @@ class CurveTests(ABC):
         self.assertEqual(curve.cofactor(), ZZ(curve_dict["cofactor"]))
         try:
             properties = curve.properties()
-            self.assertEqual(properties["j_invariant"], ZZ(curve_dict["j"]))
-            self.assertEqual(properties["embedding_degree"], ZZ(curve_dict["em"]))
-            self.assertEqual(properties["cm_discriminant"], ZZ(curve_dict["cm"]))
+            self.assertEqual(properties["j_invariant"], curve_dict["j"])
+            self.assertEqual(properties["embedding_degree"], curve_dict["em"])
+            self.assertEqual(properties["cm_discriminant"], curve_dict["cm"])
         except KeyError:
             pass
 
@@ -43,17 +43,24 @@ class CurveTests(ABC):
     def standard_class(self):
         pass
 
+    def curves(self):
+        return self._curves
+
+    def standard(self):
+        return self._standard
+
     def test_generate(self, seed_key='seed', offset=1, tries=2):
-        for name, curve_dict in self.curves.items():
+        for name, curve_dict in self.curves().items():
             seed = hex(ZZ(curve_dict[seed_key]) - offset)
             p = ZZ(curve_dict["p"])
-            curves = self.generating_function()(tries, ZZ(p), seed).curves()
+            c, p, s = tries, ZZ(p), seed
+            arguments = {"bls": (c, s)}.get(self.standard(), (c, p, s))
+            curves = self.generating_function()(*arguments).curves()
             self.assertEqual(len(curves), 1)
             self.curve_compare(p, curves[0], curve_dict)
 
     def test_find_curve(self, slow=True):
-        print("find curve")
-        for name, curve_dict in self.curves.items():
+        for name, curve_dict in self.curves().items():
             seed = curve_dict['seed'] if slow else curve_dict['correct_seed']
             p = ZZ(curve_dict["p"])
             curve = self.standard_class()(seed, p)
@@ -63,7 +70,8 @@ class CurveTests(ABC):
 
 class TestX962(unittest.TestCase, CurveTests):
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_x962.json")
+        self._curves = self.set_up("parameters/test_parameters_x962.json")
+        self._standard = "x962"
 
     def standard_class(self):
         return x962.X962
@@ -78,7 +86,7 @@ class TestX962(unittest.TestCase, CurveTests):
         self.test_find_curve()
 
     def test_cofactor_4(self):
-        curve_dict = self.curves["cofactor4"]
+        curve_dict = self.curves()["cofactor4"]
         seed = curve_dict["seed"]
         p = ZZ(curve_dict["p"])
         curves = x962.generate_x962_curves(3, ZZ(p), seed, cofactor_bound=1, cofactor_div=1).curves()
@@ -95,7 +103,8 @@ class TestX962(unittest.TestCase, CurveTests):
 class TestBrainpool(unittest.TestCase, CurveTests):
 
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_brainpool.json")
+        self._curves = self.set_up("parameters/test_parameters_brainpool.json")
+        self._standard = "brainpool"
 
     def standard_class(self):
         return brainpool.Brainpool
@@ -104,7 +113,7 @@ class TestBrainpool(unittest.TestCase, CurveTests):
         return brainpool.generate_brainpool_curves
 
     def test_prime(self):
-        for name, curve_dict in self.curves.items():
+        for name, curve_dict in self.curves().items():
             nbits = curve_dict['bits']
             p = brainpool.gen_brainpool_prime(curve_dict['prime_seed'], ZZ(nbits))
             self.assertEqual(p, ZZ(curve_dict['p']))
@@ -118,7 +127,8 @@ class TestBrainpool(unittest.TestCase, CurveTests):
 
 class TestSECG(unittest.TestCase, CurveTests):
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_secg.json")
+        self._curves = self.set_up("parameters/test_parameters_secg.json")
+        self._standard = "secg"
 
     def standard_class(self):
         return secg.SECG
@@ -136,7 +146,8 @@ class TestSECG(unittest.TestCase, CurveTests):
 class TestNUMS(unittest.TestCase, CurveTests):
 
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_nums.json")
+        self._curves = self.set_up("parameters/test_parameters_nums.json")
+        self._standard = "nums"
 
     def standard_class(self):
         return nums.NUMS
@@ -148,6 +159,25 @@ class TestNUMS(unittest.TestCase, CurveTests):
         self.test_generate()
 
     def test_find_nums(self):
+        self.test_find_curve()
+
+
+class TestBLS(unittest.TestCase, CurveTests):
+
+    def setUp(self):
+        self._curves = self.set_up("parameters/test_parameters_bls.json")
+        self._standard = "bls"
+
+    def standard_class(self):
+        return bls.BLS
+
+    def generating_function(self):
+        return bls.generate_bls_curves
+
+    def test_generate_bls(self):
+        self.test_generate(offset=0)
+
+    def test_find_bls(self):
         self.test_find_curve()
 
 

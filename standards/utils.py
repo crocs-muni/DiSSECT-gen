@@ -6,7 +6,7 @@ from sage.all import squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, Integer
 import hashlib
 import json
 
-STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist']
+STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls']
 
 
 def increment_seed(seed: str, i=1) -> str:
@@ -15,6 +15,31 @@ def increment_seed(seed: str, i=1) -> str:
     g = g % 8 + g
     f = "0" + str(len(seed) - 2) + "x"
     return '0x' + format(ZZ(Integers(2 ** g)(ZZ(seed) + i)), f)
+
+
+def next_hamming(val):
+    c = val & -val
+    r = val + c
+    return ZZ((((r ^ val) >> 2) // c) | r)
+
+
+def seed_update(std, seed, offset):
+    if std == "bls":
+        seed = abs(ZZ(seed))
+        aseed = seed // 2 ** 16
+        bits = 64 - 16
+        weight = bin(aseed).count("1")
+        for _ in range(offset):
+            new_seed = next_hamming(aseed)
+            if new_seed.nbits() > bits:
+                weight += 1
+                assert weight < bits, f"no more bls"
+                new_seed = 2 ** (weight) - 1
+            aseed = new_seed
+        seed = seed.sign()*aseed * 2 ** 16
+        return hex(seed)
+    else:
+        return increment_seed(seed, offset)
 
 
 def sha1(x: str) -> str:
@@ -72,9 +97,10 @@ class VerifiableCurve(ABC):
         self._cofactor_bound = cofactor_bound
         self._cofactor = None
         self._generator = None
-        self._bits = p.nbits()
         self._category = None
-        self._field = GF(p)
+        if p is not None:
+            self._bits = p.nbits()
+            self._field = GF(p)
         self._embedding_degree = None
         self._cm = None
         self._j_invariant = None
@@ -118,6 +144,10 @@ class VerifiableCurve(ABC):
     def security(self):
         pass
 
+    @abstractmethod
+    def find_curve(self):
+        pass
+
     def curve(self):
         if self._curve is None:
             self._curve = EllipticCurve(GF(self._p), [self._a, self._b])
@@ -144,7 +174,7 @@ class VerifiableCurve(ABC):
     def properties(self):
         self.compute_properties()
         return {"cm_discriminant": hex(self._cm), "embedding_degree": hex(self._embedding_degree),
-                "trace": hex(self.trace()),"j_invariant": hex(self._j_invariant)}
+                "trace": hex(self.trace()), "j_invariant": hex(self._j_invariant)}
 
     def generator(self):
         if self._generator is None:
@@ -163,9 +193,9 @@ class VerifiableCurve(ABC):
 
 
 class SimulatedCurves:
-    def __init__(self, standard, p, initial_seed, tries):
+    def __init__(self, standard, bits, initial_seed, tries):
         self._curves = []
-        self._p = p
+        self._bits = bits
         self._tries = tries
         self._initial_seed = initial_seed
         self._standard = standard
@@ -175,7 +205,7 @@ class SimulatedCurves:
 
     def json_export(self):
         """Prepares a list of dictionaries representing curves for json file"""
-        return {"name": f"{self._standard}_sim_" + str(self._p.nbits()),
+        return {"name": f"{self._standard}_sim_" + str(self._bits),
                 "desc": f"simulated curves generated according to the {self._standard} standard",
                 "initial_seed": self._initial_seed,
                 "seeds_tried": self._tries, "seeds_successful": len(self._curves),

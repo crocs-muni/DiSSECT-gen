@@ -4,9 +4,8 @@ import argparse
 import json
 import logging
 import os
-from sage.all import ZZ
 from job_manager.manager import ParallelRunner, Task, TaskResult
-from standards.utils import increment_seed
+from standards.utils import seed_update
 
 try:
     import coloredlogs
@@ -24,19 +23,24 @@ def get_file_name(params: list, result_dir=None) -> str:
     return file_name if result_dir is None else os.path.join(result_dir, file_name)
 
 
-def load_parameters(config_path: str, num_bits: int, total_count: int, count: int,
+def load_parameters(std: str, config_path: str, num_bits: int, total_count: int, count: int,
                     offset: int, result_dir=None) -> dict:
     """Loads the parameters from the config file (prime,seed)"""
     with open(config_path, "r") as f:
         params = json.load(f)
-        p, initial_seed = params["%s" % num_bits]
-    curve_seed = increment_seed(initial_seed, offset)
+        try:
+            p, initial_seed = params["%s" % num_bits]
+        except ValueError:
+            initial_seed = params["%s" % num_bits]
+            p = 0
+    curve_seed = seed_update(std, initial_seed, offset)
     while total_count > 0:
         c = total_count if total_count < count else count
-        f = get_file_name([c, ZZ(p).nbits(), curve_seed], result_dir)
+        f = get_file_name([c, num_bits, curve_seed], result_dir)
         yield {"count": c, "prime": p, "seed": curve_seed, "outfile": f}
         total_count -= count
-        curve_seed = increment_seed(curve_seed, count)
+
+        curve_seed = seed_update(std, curve_seed, count)
 
 
 def check_config_file(config_file, bits):
@@ -45,7 +49,9 @@ def check_config_file(config_file, bits):
         params = json.load(f)
     if not str(bits) in params:
         new_bits = list(params.keys())[0]
-        print(f"Bit-size {str(bits)} is not in {config_file}! Taking {new_bits} instead.")
+        if bits!=0:
+            print(f"Bit-size {str(bits)} is not in {config_file}!",end=" ")
+        print(f"Taking {new_bits} bit-size.")
         return new_bits
     return bits
 
@@ -84,13 +90,13 @@ def main():
 
     def feeder():
         """Generates computing jobs"""
-        for p in load_parameters(config_path, bits, args.total_count, args.count, args.offset, result_dir):
+        for p in load_parameters(standard, config_path, bits, args.total_count, args.count, args.offset, result_dir):
             arguments = p
             arguments["standard"] = standard
             if args.cofactor is not None:
                 arguments['cofactor'] = args.cofactor
             arguments['cofactor_div'] = args.cofactor_div
-            cli = " ".join(["--%s=%s" % (k, a) for k,a in arguments.items()])
+            cli = " ".join(["--%s=%s" % (k, a) for k, a in arguments.items()])
             yield Task(args.interpreter, "%s %s" % (wrapper_path, cli))
 
     def prerun(j: Task):
@@ -102,8 +108,9 @@ def main():
         logger.info("Task %s finished, code: %s, fails: %s" % (r.job.idx, r.ret_code, r.job.failed_attempts))
         if r.ret_code != 0 and r.job.failed_attempts < 3:
             pr.enqueue(r.job)
-        # with open("error.txt",'w') as f:
-        #     f.write(r.stderr)
+        if r.stderr != "":
+            with open("error.txt", 'w') as f:
+                f.write(r.stderr)
 
     pr.job_feeder = feeder
     pr.cb_job_prerun = prerun

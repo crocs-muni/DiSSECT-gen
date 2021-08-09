@@ -4,7 +4,7 @@ import json
 import argparse
 import os
 
-from standards.utils import IntegerEncoder, seed_order, STANDARDS, increment_seed
+from standards.utils import IntegerEncoder, seed_order, STANDARDS, seed_update
 
 RESULTS_DIR = 'results'
 
@@ -23,13 +23,13 @@ def save_into_file(merged_name: str, merged: dict, results_path: str):
     os.rename(merged_name_tmp, merged_name)
 
 
-def merge_dictionaries(file_name: str, merged: dict, original_seed: str, verbose=False):
+def merge_dictionaries(std, file_name: str, merged: dict, original_seed: str, verbose=False):
     """Merges dictionary from a file (file_name) with the rest of results in dictionary (merged)"""
     with open(file_name, "r") as f:
         results = json.load(f)
     if verbose:
         print("Merging ", file_name, "...")
-    expected_initial_seed = increment_seed(original_seed, merged["seeds_tried"])
+    expected_initial_seed = seed_update(std, original_seed, merged["seeds_tried"])
     if merged['seeds_tried'] == 0:
         merged.update(results)
     else:
@@ -48,7 +48,7 @@ def get_initial_seed(path, ordered_files):
     return results['initial_seed']
 
 
-def merge(path_to_results: str, verbose=False):
+def merge(std, path_to_results: str, verbose=False):
     """Merges results of the standard (std)"""
     bit_sizes = [f.name for f in os.scandir(path_to_results) if f.is_dir()]
     for bit_size in bit_sizes:
@@ -60,7 +60,7 @@ def merge(path_to_results: str, verbose=False):
         ordered_files = seed_order(files)
         initial_seed = get_initial_seed(root, ordered_files)
         for file in ordered_files:
-            merge_dictionaries(str(os.path.join(root, file)), merged, initial_seed, verbose)
+            merge_dictionaries(std, str(os.path.join(root, file)), merged, initial_seed, verbose)
 
         merged_name = os.path.join(results_path, f'{str(merged["seeds_tried"])}_{str(bit_size)}_{initial_seed}.json')
         save_into_file(merged_name, merged, results_path)
@@ -82,7 +82,7 @@ def main():
         stds = [args.standard]
     for std in stds:
         path_to_std = os.path.join(path_to_results, std)
-        merge(path_to_std, verbose=args.verbose)
+        merge(std, path_to_std, verbose=args.verbose)
 
 
 if __name__ == '__main__':
