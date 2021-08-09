@@ -54,10 +54,10 @@ class NUMS(VerifiableCurve):
         self.compute_properties()
 
 
-def generate_nums_curves(count, p, seed, cofactor, cofactor_div):
+def generate_nums_curves(count, p, seed):
     """Generates at most #count curves according to the standard
     """
-    simulated_curves = SimulatedCurves("nums", p, seed, count)
+    simulated_curves = SimulatedCurves("nums", p.nbits(), seed, count)
     curve = NUMS(seed, p)
     for _ in range(count):
         if not curve.secure():

@@ -113,11 +113,11 @@ class Brainpool(VerifiableCurve):
             break
 
 
-def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str, cofactor, cofactor_div) -> SimulatedCurves:
+def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> SimulatedCurves:
     """This is an implementation of the Brainpool standard suitable for large-scale simulations
         For more readable implementation, see 'brainpool_curve' above
     """
-    simulated_curves = SimulatedCurves("brainpool", p, initial_seed, count)
+    simulated_curves = SimulatedCurves("brainpool", p.nbits(), initial_seed, count)
     curve = Brainpool(initial_seed, p)
     b_seed = None
     for _ in range(count):

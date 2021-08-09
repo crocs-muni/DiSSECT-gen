@@ -76,7 +76,7 @@ class SECG(X962):
 def generate_secg_curves(count, p, seed, cofactor_bound=4, cofactor_div=2):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     """
-    simulated_curves = SimulatedCurves("secg", p, seed, count)
+    simulated_curves = SimulatedCurves("secg", p.nbits(), seed, count)
     curve = SECG(seed, p, cofactor_bound=cofactor_bound, cofactor_div=cofactor_div)
     for _ in range(count):
         if not curve.secure():

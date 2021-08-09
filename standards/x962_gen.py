@@ -84,7 +84,7 @@ def generate_x962_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
     """Generates at most #count curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
-    simulated_curves = SimulatedCurves("x962", p, seed, count)
+    simulated_curves = SimulatedCurves("x962", p.nbits(), seed, count)
     curve = X962(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
     for _ in range(count):
         if not curve.secure():

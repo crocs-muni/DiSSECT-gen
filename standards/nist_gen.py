@@ -12,7 +12,7 @@ class NIST(X962):
 
 
 def generate_nist_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
-    simulated_curves = SimulatedCurves("nist", p, seed, count)
+    simulated_curves = SimulatedCurves("nist", p.nbits(), seed, count)
     curve = NIST(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
     for _ in range(count):
         if not curve.secure():
