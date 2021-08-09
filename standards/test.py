@@ -32,6 +32,8 @@ class CurveTests(ABC):
             self.assertEqual(properties["j_invariant"], curve_dict["j"])
             self.assertEqual(properties["embedding_degree"], curve_dict["em"])
             self.assertEqual(properties["cm_discriminant"], curve_dict["cm"])
+            self.assertEqual(curve.generator()[0], curve_dict["x"])
+            self.assertEqual(curve.generator()[1], curve_dict["y"])
         except KeyError:
             pass
 
@@ -63,7 +65,8 @@ class CurveTests(ABC):
         for name, curve_dict in self.curves().items():
             seed = curve_dict['seed'] if slow else curve_dict['correct_seed']
             p = ZZ(curve_dict["p"])
-            curve = self.standard_class()(seed, p)
+            arguments = {"bls": [seed]}.get(self.standard(), (seed, p))
+            curve = self.standard_class()(*arguments)
             curve.find_curve()
             self.curve_compare(p, curve, curve_dict)
 
@@ -165,7 +168,7 @@ class TestNUMS(unittest.TestCase, CurveTests):
 class TestBLS(unittest.TestCase, CurveTests):
 
     def setUp(self):
-        self._curves = self.set_up("parameters/test_parameters_bls.json")
+        self._curves = self.set_up("parameters/test_parameters_bls.json",381)
         self._standard = "bls"
 
     def standard_class(self):

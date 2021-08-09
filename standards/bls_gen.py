@@ -23,7 +23,7 @@ class BLS(VerifiableCurve):
                 i.nth_root(3)
             except ValueError:
                 break
-        b = 1
+        b = ZZ(1)
         while True:
             E = EllipticCurve(GF(self._p), [0, b])
             P = E.random_point()
@@ -45,7 +45,7 @@ class BLS(VerifiableCurve):
             q = ZZ(q)
         except TypeError:
             return False
-        if not q.nbits() == 383 or not q.is_prime() or q == s:
+        if not q.nbits() == 381 or not q.is_prime() or q == s:
             return False
         r = s ** 4 - s ** 2 + 1
         if not r.nbits() == 255 or not r.is_prime():
@@ -59,29 +59,34 @@ class BLS(VerifiableCurve):
     def find_curve(self):
         while not self.secure():
             self.seed_update()
+        self.cm_method()
         self.generate_generator()
         self.compute_properties()
 
     def generate_generator(self):
-        x = 1
+        x = ZZ(1)
         while True:
             try:
                 point = self.curve().lift_x(x)
-                break
+                y = min(point[1], self._p - point[1])
+                point = self._cofactor * self.curve()(x, y)
+                if point != self.curve()(0):
+                    break
             except ValueError:
-                x += 1
-        y = min(point[1], self._p - point[1])
-        point = self._cofactor * self.curve()(x, y)
+                pass
+            x += 1
+
         self._generator = point[0], point[1]
 
 
 def generate_bls_curves(count, seed):
-    simulated_curves = SimulatedCurves("bls", 383, seed, count)
+    simulated_curves = SimulatedCurves("bls", 381, seed, count)
     curve = BLS(seed)
     for _ in range(count):
         if not curve.secure():
             curve.seed_update()
             continue
+        curve.cm_method()
         curve.compute_properties()
         curve.generate_generator()
         simulated_curves.add_curve(curve)
