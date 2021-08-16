@@ -219,7 +219,7 @@ def seed_order(files):
     """Sorts through files with results according to the right ordering of seeds"""
     # if standard == 'x962':
     #     return sorted(files, key=lambda x: int((x.split(".")[-2]).split("_")[-1], 16), reverse=True)
-    return sorted(files, key=lambda x: int((x.split(".")[-2]).split("_")[-1], 16))
+    return sorted(files, key=lambda x: abs(int((x.split(".")[-2]).split("_")[-1], 16)))
 
 
 def class_number_check(curve: EllipticCurve, q: ZZ, bound: int):
