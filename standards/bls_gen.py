@@ -1,4 +1,3 @@
-import sage.graphs.generators.families
 from sage.all import GF, EllipticCurve, ZZ
 from utils import VerifiableCurve, SimulatedCurves, seed_update
 
@@ -6,8 +5,9 @@ from utils import VerifiableCurve, SimulatedCurves, seed_update
 class BLS(VerifiableCurve):
     def __init__(self, seed):
         super().__init__(seed, None, None, None)
-        self._standard = "nums"
-        self._category = "nums"
+        self._standard = "bls"
+        self._category = "bls"
+        self._bits = ZZ(381)
 
     def set_ab(self):
         pass
@@ -30,8 +30,8 @@ class BLS(VerifiableCurve):
             if r * P == E(0) and 2 * self.trace() * P != E(0) and r == E.order():
                 break
             b *= i
-        self._b = b
-        self._a = 0
+        self._b = ZZ(b)
+        self._a = ZZ(0)
 
     def seed_update(self, offset=1):
         self._seed = seed_update(self._standard, self._seed, offset)

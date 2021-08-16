@@ -25,8 +25,8 @@ def next_hamming(val):
 
 def seed_update(std, seed, offset):
     if std == "bls":
-        seed = abs(ZZ(seed))
-        aseed = seed // 2 ** 16
+        seed = ZZ(seed)
+        aseed = abs(seed) // 2 ** 16
         bits = 64 - 16
         weight = bin(aseed).count("1")
         for _ in range(offset):

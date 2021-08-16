@@ -71,7 +71,7 @@ class X962(VerifiableCurve):
 
     def seed_update(self, offset=1):
         self._seed = increment_seed(self._seed, offset)
-        self._secure = None
+        self.clear()
         self.set_ab()
 
     def find_curve(self):

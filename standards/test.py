@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from sage.all import ZZ, EllipticCurve, GF
 
 
-class CurveTests(ABC):
+class CurveTests(unittest.TestCase,ABC):
 
     def set_up(self, path, bits_bound=256):
         with open(path, "r") as file:
@@ -51,7 +51,7 @@ class CurveTests(ABC):
     def standard(self):
         return self._standard
 
-    def test_generate(self, seed_key='seed', offset=1, tries=2):
+    def test_generate(self, seed_key='seed', offset=0, tries=2):
         for name, curve_dict in self.curves().items():
             seed = hex(ZZ(curve_dict[seed_key]) - offset)
             p = ZZ(curve_dict["p"])
@@ -70,8 +70,22 @@ class CurveTests(ABC):
             curve.find_curve()
             self.curve_compare(p, curve, curve_dict)
 
+    def test_generate_vs_find(self, seed_key='seed', tries = 1):
+        for name, curve_dict in self.curves().items():
+            seed = curve_dict[seed_key]
+            p = ZZ(curve_dict["p"])
+            arguments = {"bls": [seed]}.get(self.standard(), (seed, p))
+            curve = self.standard_class()(*arguments)
+            curve.find_curve()
+            p, s = ZZ(p), seed
+            arguments = {"bls": (tries, s)}.get(self.standard(), (tries, p, s))
+            curves = self.generating_function()(*arguments).curves()
+            curve2 = curves[0]
+            self.assertEqual(curve2.b(),curve.b())
+            self.assertEqual(curve2.a(),curve.a())
 
-class TestX962(unittest.TestCase, CurveTests):
+
+class TestX962(CurveTests):
     def setUp(self):
         self._curves = self.set_up("parameters/test_parameters_x962.json")
         self._standard = "x962"
@@ -88,6 +102,9 @@ class TestX962(unittest.TestCase, CurveTests):
     def test_find_x962(self):
         self.test_find_curve()
 
+    def test_generate_vs_find_x962(self):
+        self.test_generate_vs_find()
+
     def test_cofactor_4(self):
         curve_dict = self.curves()["cofactor4"]
         seed = curve_dict["seed"]
@@ -103,7 +120,7 @@ class TestX962(unittest.TestCase, CurveTests):
         self.curve_compare(p, curve, curve_dict)
 
 
-class TestBrainpool(unittest.TestCase, CurveTests):
+class TestBrainpool(CurveTests):
 
     def setUp(self):
         self._curves = self.set_up("parameters/test_parameters_brainpool.json")
@@ -122,13 +139,16 @@ class TestBrainpool(unittest.TestCase, CurveTests):
             self.assertEqual(p, ZZ(curve_dict['p']))
 
     def test_generate_brainpool(self):
-        self.test_generate('correct_seed', offset=0, tries=10)
+        self.test_generate('correct_seed', offset=0, tries=3)
+
+    def test_generate_vs_find_brainpool(self):
+        self.test_generate_vs_find(seed_key='correct_seed', tries = 3)
 
     def test_find_brainpool(self):
         self.test_find_curve(slow=False)
 
 
-class TestSECG(unittest.TestCase, CurveTests):
+class TestSECG(CurveTests):
     def setUp(self):
         self._curves = self.set_up("parameters/test_parameters_secg.json")
         self._standard = "secg"
@@ -142,11 +162,14 @@ class TestSECG(unittest.TestCase, CurveTests):
     def test_generate_sec(self):
         self.test_generate()
 
+    def test_generate_vs_find_secg(self):
+        self.test_generate_vs_find()
+
     def test_find_secg(self):
         self.test_find_curve()
 
 
-class TestNUMS(unittest.TestCase, CurveTests):
+class TestNUMS(CurveTests):
 
     def setUp(self):
         self._curves = self.set_up("parameters/test_parameters_nums.json")
@@ -161,11 +184,14 @@ class TestNUMS(unittest.TestCase, CurveTests):
     def test_generate_nums(self):
         self.test_generate()
 
+    def test_generate_vs_find_nums(self):
+        self.test_generate_vs_find()
+
     def test_find_nums(self):
         self.test_find_curve()
 
 
-class TestBLS(unittest.TestCase, CurveTests):
+class TestBLS(CurveTests):
 
     def setUp(self):
         self._curves = self.set_up("parameters/test_parameters_bls.json",381)
@@ -179,6 +205,9 @@ class TestBLS(unittest.TestCase, CurveTests):
 
     def test_generate_bls(self):
         self.test_generate(offset=0)
+
+    def test_generate_vs_find_bls(self):
+        self.test_generate_vs_find()
 
     def test_find_bls(self):
         self.test_find_curve()
