@@ -6,7 +6,7 @@ from sage.all import squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, Integer
 import hashlib
 import json
 
-STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls']
+STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random']
 
 
 def increment_seed(seed: str, i=1) -> str:
@@ -36,15 +36,20 @@ def seed_update(std, seed, offset):
                 assert weight < bits, f"no more bls"
                 new_seed = 2 ** (weight) - 1
             aseed = new_seed
-        seed = seed.sign()*aseed * 2 ** 16
+        seed = seed.sign() * aseed * 2 ** 16
         return hex(seed)
     else:
         return increment_seed(seed, offset)
 
 
 def sha1(x: str) -> str:
-    """Returns sha1 value of hex-string x (without prefix) in hex-string"""
+    """Returns sha1 value of hex-string x in hex-string"""
     return '0x' + hashlib.sha1(bytes.fromhex(x[2:])).hexdigest()
+
+
+def sha512(x: str) -> str:
+    """Returns sha512 value of hex-string x in hex-string"""
+    return '0x' + hashlib.sha3_512(bytes.fromhex(x[2:])).hexdigest()
 
 
 def int_to_hex_string(x: ZZ, prefix=True) -> str:
