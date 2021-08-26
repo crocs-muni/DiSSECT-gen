@@ -190,8 +190,8 @@ class VerifiableCurve(ABC):
         return {"name": f"{self._standard}_sim_" + str(self._bits) + "_" + self._seed, "category": self._category,
                 "desc": "",
                 "field": {"type": "Prime", "p": int_to_hex_string(self._p, prefix=True), "bits": self._bits},
-                "form": "Weierstrass", "params": {"a": {"raw": int_to_hex_string(self._a, prefix=True)},
-                                                  "b": {"raw": int_to_hex_string(self._b, prefix=True)}},
+                "form": "Weierstrass", "params": {"a": {"raw": int_to_hex_string(ZZ(self._a), prefix=True)},
+                                                  "b": {"raw": int_to_hex_string(ZZ(self._b), prefix=True)}},
                 "generator": {"x": {"raw": self.generator()[0]}, "y": {"raw": self.generator()[1]}},
                 "order": self._order,
                 "cofactor": self._cofactor, "properties": self.properties(), "seed": self._seed}

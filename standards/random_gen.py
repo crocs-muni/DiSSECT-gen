@@ -61,13 +61,13 @@ def random_prime(seed, bits):
 
 def generate_random_curves(count, p, seed, cofactor_bound=8, cofactor_div=2):
     simulated_curves = SimulatedCurves("random", p.nbits(), seed, count)
-    curve = RandomEC(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+    curve = RandomEC(seed, p)
     for _ in range(count):
         if not curve.secure():
             curve.seed_update()
             continue
         curve.compute_properties()
         simulated_curves.add_curve(curve)
-        curve = RandomEC(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
+        curve = RandomEC(curve.seed(), p)
         curve.seed_update()
     return simulated_curves
