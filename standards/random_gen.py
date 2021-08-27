@@ -3,7 +3,8 @@ from sage.all import ZZ, GF, EllipticCurve
 
 
 class RandomEC(VerifiableCurve):
-    def __init__(self, seed, p, cofactor_bound=8, cofactor_div=2):
+    def __init__(self, seed, bits, cofactor_bound=8, cofactor_div=2):
+        p = self.random_prime(seed, bits)
         super().__init__(seed, p, cofactor_bound, cofactor_div)
         self._standard = "random"
         self._category = "random"
@@ -50,24 +51,21 @@ class RandomEC(VerifiableCurve):
             self.seed_update()
         self.compute_properties()
 
-
-def random_prime(seed, bits):
-    while True:
+    @staticmethod
+    def random_prime(seed, bits):
         p = ZZ(sha512(seed)) >> (512 - bits)
-        if p.is_prime():
-            return p
-        seed = increment_seed(seed)
+        return p.next_prime()
 
 
-def generate_random_curves(count, p, seed, cofactor_bound=8, cofactor_div=2):
-    simulated_curves = SimulatedCurves("random", p.nbits(), seed, count)
-    curve = RandomEC(seed, p)
+def generate_random_curves(count, bits, seed, cofactor_bound=8, cofactor_div=2):
+    simulated_curves = SimulatedCurves("random", bits, seed, count)
+    curve = RandomEC(seed, bits)
     for _ in range(count):
         if not curve.secure():
             curve.seed_update()
             continue
         curve.compute_properties()
         simulated_curves.add_curve(curve)
-        curve = RandomEC(curve.seed(), p)
+        curve = RandomEC(curve.seed(), bits)
         curve.seed_update()
     return simulated_curves
