@@ -187,7 +187,7 @@ class VerifiableCurve(ABC):
         return list(map(lambda x: int_to_hex_string(ZZ(x)), self._generator[:2]))
 
     def json_export(self):
-        return {"name": f"{self._standard}_sim_" + str(self._bits) + "_" + self._seed, "category": self._category,
+        return {"name": f"{self._standard}_sim_{str(self._bits)}_{self._seed}", "category": f"{self._category}_sim",
                 "desc": "",
                 "field": {"type": "Prime", "p": int_to_hex_string(self._p, prefix=True), "bits": self._bits},
                 "form": "Weierstrass", "params": {"a": {"raw": int_to_hex_string(ZZ(self._a), prefix=True)},
