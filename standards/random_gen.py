@@ -6,6 +6,7 @@ class RandomEC(VerifiableCurve):
     def __init__(self, seed, bits, cofactor_bound=8, cofactor_div=2):
         p = self.random_prime(seed, bits)
         super().__init__(seed, p, cofactor_bound, cofactor_div)
+        self._bits = bits
         self._standard = "random"
         self._category = "random"
 
@@ -20,6 +21,8 @@ class RandomEC(VerifiableCurve):
 
     def security(self):
         self._secure = False
+        if self._p.nbits()!=self._bits:
+            return
         try:
             cardinality = EllipticCurve(GF(self._p), [self._a, self._b]).__pari__().ellsea(self._cofactor_div)
         except ArithmeticError:
