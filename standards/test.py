@@ -5,6 +5,7 @@ import brainpool_gen as brainpool
 import secg_gen as secg
 import nums_gen as nums
 import bls_gen as bls
+import c25519_gen as c25519
 import random_gen as random_ec
 from abc import ABC, abstractmethod
 from sage.all import ZZ, EllipticCurve, GF
@@ -191,6 +192,28 @@ class TestNUMS(CurveTests):
         self.test_generate_vs_find()
 
     def test_find_nums(self):
+        self.test_find_curve()
+
+
+class TestC25519(CurveTests):
+
+    def setUp(self):
+        self.curves = self.set_up("parameters/test_parameters_c25519.json")
+        self.standard = "c25519"
+
+    def standard_class(self):
+        return c25519.C25519
+
+    def generating_function(self):
+        return c25519.generate_c25519_curves
+
+    def test_generate_c25519(self):
+        self.test_generate()
+
+    def test_generate_vs_find_c25519(self):
+        self.test_generate_vs_find()
+
+    def test_find_c25519(self):
         self.test_find_curve()
 
 
