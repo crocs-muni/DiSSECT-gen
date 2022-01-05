@@ -31,11 +31,11 @@ class C25519(VerifiableCurve):
             return
         self._cofactor = 8 if self._p % 4 == 1 else 4
 
-        if not ZZ(cardinality / self._cofactor).is_prime():
+        if cardinality%self._cofactor!=0 or not ZZ(cardinality / self._cofactor).is_prime():
             return
         order = cardinality // self._cofactor
         twist_card = 2 * (self._p + 1) - cardinality
-        if not ZZ(twist_card / 4).is_prime():
+        if twist_card%4!=0 or not ZZ(twist_card / 4).is_prime():
             return
         if self._p - cardinality in [-1, 0]:
             return

@@ -6,7 +6,7 @@ from sage.all import squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, Integer
 import hashlib
 import json
 
-STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random']
+STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random','c25519']
 
 
 def increment_seed(seed: str, i=1) -> str:
