@@ -1,7 +1,7 @@
 {
   "c25519": {
     "bits": 255,
-    "seed": "0X000000000000000000000000000000000000000000000000000000000076d06",
+    "seed": "0X00000000000000000000000000000000000000000000000000000000001db42",
     "p": "0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed",
     "A": "0x2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa984914a144",
     "B": "0x7b425ed097b425ed097b425ed097b425ed097b425ed097b4260b5e9c7710c864",

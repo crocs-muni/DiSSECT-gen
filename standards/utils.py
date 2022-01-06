@@ -38,8 +38,7 @@ def seed_update(std, seed, offset):
             aseed = new_seed
         seed = seed.sign() * aseed * 2 ** 16
         return hex(seed)
-    else:
-        return increment_seed(seed, offset)
+    return increment_seed(seed, offset)
 
 
 def sha1(x: str) -> str:

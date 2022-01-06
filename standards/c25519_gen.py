@@ -13,7 +13,7 @@ class C25519(VerifiableCurve):
 
     def set_ab(self):
         """Transformation from Montgomery to Weierstrass"""
-        mont_a = ZZ(self._seed)
+        mont_a = ZZ(self._seed)*4+2
         assert mont_a > 2 and mont_a % 4 == 2
         mont_a = GF(self._p)(mont_a)
         self._a = 1 - mont_a ** 2 / 3
@@ -51,7 +51,7 @@ class C25519(VerifiableCurve):
         self._order = order
         self._secure = True
 
-    def seed_update(self, offset=4):
+    def seed_update(self, offset = 1):
         self._seed = increment_seed(self._seed, offset)
         self.clear()
         self.set_ab()
@@ -65,7 +65,7 @@ class C25519(VerifiableCurve):
         field = GF(self._p)
         u = field(0)
         point = 0, 0
-        A = GF(self._p)(self._seed)
+        A = field(ZZ(self._seed)*4+2)
         while True:
             u += 1
             v2 = u ** 3 + A * u ** 2 + u
