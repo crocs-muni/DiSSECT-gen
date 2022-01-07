@@ -219,12 +219,14 @@ class SimulatedCurves:
         self._curves.append(curve)
 
 
-def seed_order(files):
+def seed_order(files,standard):
     """Sorts through files with results according to the right ordering of seeds"""
     if standard == 'bls':
-        return sorted(files, key=lambda x: int((x.split(".")[-2]).split("_")[-1], 16), reverse=True)
+        def bls_sort(x):
+            x = int((x.split(".")[-2]).split("_")[-1], 16)
+            return bin(x).count("1"), -x
+        return sorted(files, key=lambda x: bls_sort(x))
     return sorted(files, key=lambda x: abs(int((x.split(".")[-2]).split("_")[-1], 16)))
-
 
 def class_number_check(curve: EllipticCurve, q: ZZ, bound: int):
     """Tests whether the class number of curve is lower-bounded by bound"""

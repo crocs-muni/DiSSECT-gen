@@ -57,7 +57,7 @@ def merge(std, path_to_results: str, verbose=False):
             continue
         merged = {"seeds_tried": 0}
         root, _, files = list(os.walk(results_path))[0]
-        ordered_files = seed_order(files)
+        ordered_files = seed_order(files,std)
         initial_seed = get_initial_seed(root, ordered_files)
         for file in ordered_files:
             merge_dictionaries(std, str(os.path.join(root, file)), merged, initial_seed, verbose)
