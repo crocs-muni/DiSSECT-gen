@@ -1,4 +1,4 @@
-from sage.all import GF, EllipticCurve, ZZ
+from sage.all import GF, EllipticCurve, ZZ, PolynomialRing
 from utils import VerifiableCurve, SimulatedCurves, seed_update
 
 
@@ -13,19 +13,19 @@ class BLS(VerifiableCurve):
         pass
 
     def cm_method(self):
-        i = GF(self._p)(0)
+        field = GF(self._p)
+        i = field(0)
         r = self._p + 1 - self.trace()
+        z = PolynomialRing(field,'z').gen()
         while True:
             i += 1
             if i.is_square():
                 continue
-            try:
-                i.nth_root(3)
-            except ValueError:
+            if not (z**3-i).roots():
                 break
         b = ZZ(1)
         while True:
-            E = EllipticCurve(GF(self._p), [0, b])
+            E = EllipticCurve(field, [0, b])
             P = E.random_point()
             if r * P == E(0) and 2 * self.trace() * P != E(0) and r == E.order():
                 break
