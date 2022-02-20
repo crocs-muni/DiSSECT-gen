@@ -28,8 +28,9 @@ def main():
     gen_function = getattr(__import__(f"{args.standard}_gen"), f"generate_{args.standard}_curves")
     cofactor = ZZ(args.cofactor) if args.cofactor is not None else None
     c, p, s = ZZ(args.count), ZZ(args.prime), args.seed
-    arguments = {"brainpool": (c, p, s),"c25519":(c,p,s), "nums": (c, p, s), "bls": (c, s)}.get(args.standard, (
-    c, p, s, cofactor, ZZ(args.cofactor_div)))
+    arguments = {"brainpool": (c, p, s), "c25519": (c, p, s), "nums": (c, p, s), "bls": (c, s), "bn": (c, s)}.get(
+        args.standard, (
+            c, p, s, cofactor, ZZ(args.cofactor_div)))
     results = gen_function(*arguments)
     with open(args.outfile, "w+") as f:
         json.dump(results.json_export(), f, indent=2, cls=IntegerEncoder)

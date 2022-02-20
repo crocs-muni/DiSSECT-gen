@@ -6,7 +6,7 @@ from sage.all import squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, Integer
 import hashlib
 import json
 
-STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random','c25519']
+STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random','c25519', 'bn']
 
 
 def increment_seed(seed: str, i=1) -> str:
@@ -38,6 +38,11 @@ def seed_update(std, seed, offset):
             aseed = new_seed
         seed = seed.sign() * aseed * 2 ** 16
         return hex(seed)
+    if std =="bn":
+        seed = ZZ(seed)
+        if seed<0:
+            return increment_seed(hex(-seed),offset)
+        return increment_seed(hex(seed),offset)
     return increment_seed(seed, offset)
 
 
