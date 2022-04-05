@@ -1,0 +1,87 @@
+{
+  "bn160": {
+    "bits": 160,
+    "seed": "-0x6882f5bc57",
+    "p": "0xffffffda48afd02cccf4fe550dc1ddf3f4046e43",
+    "A": "0x00",
+    "B": "0x03",
+    "x": "0x01",
+    "y": "0x02",
+    "order": "0xffffffda48afd02cccf3fe550dd4bad595810cdd",
+    "j": "0x0",
+    "emb": "0x0c",
+    "cm": "-0x03",
+    "cofactor": "0x01"
+  },
+  "bn192": {
+    "bits": 192,
+    "seed": "0x6882f5bf153d",
+    "p": "0xfffffff526bac3d523661124f38543e91f0186c1f247719b",
+    "A": "0x00",
+    "B": "0x03",
+    "x": "0x01",
+    "y": "0x02",
+    "order": "0xfffffff526bac3d523661123f38543ee8ba2eb5d35910e65",
+    "j": "0x0",
+    "emb": "0x0c",
+    "cm": "-0x03",
+    "cofactor": "0x01"
+  },
+  "bn224": {
+    "bits": 224,
+    "seed": "0x6882f5c030af71",
+    "p": "0xfffffffffff107288ec29e602c4520db42180823bb907d1287127833",
+    "A": "0x00",
+    "B": "0x03",
+    "x": "0x01",
+    "y": "0x02",
+    "order": "0xfffffffffff107288ec29e602c4420db4218082b36c2accff76c58ed",
+    "j": "0x0",
+    "emb": "0x0c",
+    "cm": "-0x03",
+    "cofactor": "0x01"
+  },
+  "bn256": {
+    "bits": 256,
+    "seed": "0x6882f5c030b0a801",
+    "p": "0xfffffffffffcf0cd46e5f25eee71a49f0cdc65fb12980a82d3292ddbaed33013",
+    "A": "0x00",
+    "B": "0x03",
+    "x": "0x01",
+    "y": "0x02",
+    "order": "0xfffffffffffcf0cd46e5f25eee71a49e0cdc65fb1299921af62d536cd10b500d",
+    "j": "0x0",
+    "emb": "0x0c",
+    "cm": "-0x03",
+    "cofactor": "0x01"
+  },
+  "bn384": {
+    "bits": 384,
+    "seed": "-0x6882f5c030b0f7f010b1aa3b",
+    "p": "0xfffffffffffffffffff2a96823d5920d2a127e3f6fbca024c8fbe29531892c79534f9d306328261550a7cabd7cccd10b",
+    "A": "0x00",
+    "B": "0x03",
+    "x": "0x01",
+    "y": "0x02",
+    "order": "0xfffffffffffffffffff2a96823d5920d2a127e3f6fbca023c8fbe29531892c795356487d8ac63e4f4db17384341a5775",
+    "j": "0x0",
+    "emb": "0x0c",
+    "cm": "-0x03",
+    "cofactor": "0x01"
+  },
+  "bn512": {
+    "bits": 512,
+    "seed": "0x6882f5c030b0f7f010b306bb5e1bd80f",
+    "p": "0xfffffffffffffffffffffffffff9ec7f01c60ba1d8cb5307c0bbe3c111b0ef455146cf1eacbe98b8e48c65deab236fe1916a55ce5f4c6467b4eb280922adef33",
+    "A": "0x00",
+    "B": "0x03",
+    "x": "0x01",
+    "y": "0x02",
+    "order": "0xfffffffffffffffffffffffffff9ec7f01c60ba1d8cb5307c0bbe3c111b0ef445146cf1eacbe98b8e48c65deab2679a34a10313e04f9a2b406a64a5f519a09ed",
+    "j": "0x0",
+    "emb": "0x0c",
+    "cm": "-0x03",
+    "cofactor": "0x01"
+  }
+
+}
