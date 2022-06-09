@@ -7,13 +7,6 @@ import os
 from job_manager.manager import ParallelRunner, Task, TaskResult
 from standards.utils import seed_update
 
-try:
-    import coloredlogs
-
-    coloredlogs.install(level=logging.INFO)
-except ModuleNotFoundError:
-    print("E: Package coloredlogs is not installed. No logs will be displayed")
-
 logger = logging.getLogger(__name__)
 
 
