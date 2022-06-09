@@ -3,7 +3,7 @@
 """
 from sage.all import ZZ, GF, EllipticCurve
 from utils import increment_seed, embedding_degree, find_integer, SimulatedCurves, VerifiableCurve, \
-    class_number_check
+    class_number_check, curve_command_line
 
 CHECK_CLASS_NUMBER = False
 
@@ -143,3 +143,9 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> Simulated
         curve.seed_update()
 
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_brainpool_curves(args.count, args.prime, args.seed)
+    results.to_json_file(args.outfile)

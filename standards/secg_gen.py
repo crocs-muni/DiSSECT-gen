@@ -3,7 +3,7 @@
     https://www.secg.org/sec1-v2.pdf
 """
 
-from utils import sha1, SimulatedCurves
+from utils import sha1, SimulatedCurves, curve_command_line
 from x962_gen import X962
 from sage.all import ZZ, floor, GF, Integer, EllipticCurve
 
@@ -87,3 +87,10 @@ def generate_secg_curves(count, p, seed, cofactor_bound=4, cofactor_div=2):
         curve = SECG(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_secg_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results.to_json_file(args.outfile)
+

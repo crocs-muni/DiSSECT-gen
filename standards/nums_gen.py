@@ -1,4 +1,4 @@
-from utils import embedding_degree, increment_seed, VerifiableCurve, SimulatedCurves
+from utils import embedding_degree, increment_seed, VerifiableCurve, SimulatedCurves, curve_command_line
 from sage.all import ZZ, EllipticCurve, GF
 
 
@@ -18,7 +18,7 @@ class NUMS(VerifiableCurve):
         try:
             cardinality = EllipticCurve(GF(self._p), [-3, self._b]).__pari__().ellsea(1)
         except ArithmeticError:
-            return 
+            return
         cardinality = ZZ(cardinality)
         if cardinality == 0:
             return
@@ -68,3 +68,9 @@ def generate_nums_curves(count, p, seed):
         curve = NUMS(curve.seed(), p)
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_nums_curves(args.count, args.prime, args.seed)
+    results.to_json_file(args.outfile)

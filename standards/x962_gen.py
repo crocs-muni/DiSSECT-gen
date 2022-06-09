@@ -1,5 +1,6 @@
 from utils import increment_seed, embedding_degree, SimulatedCurves, VerifiableCurve, find_integer, get_b_from_r
 from sage.all import ZZ, GF, EllipticCurve, prime_range, is_pseudoprime, sqrt
+from utils import curve_command_line
 
 
 def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255, cofactor_bound=None) -> dict:
@@ -84,6 +85,8 @@ def generate_x962_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
     """Generates at most #count curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
+    if cofactor_bound is not None:
+        cofactor_bound = ZZ(cofactor_bound)
     simulated_curves = SimulatedCurves("x962", p.nbits(), seed, count)
     curve = X962(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
     for _ in range(count):
@@ -95,3 +98,9 @@ def generate_x962_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
         curve = X962(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_x962_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results.to_json_file(args.outfile)

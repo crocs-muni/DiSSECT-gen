@@ -78,7 +78,7 @@ def main():
     os.makedirs(result_dir, exist_ok=True)
     script_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
-    wrapper_name = 'wrapper.py'
+    wrapper_name = f'{standard}_gen.py'
     wrapper_path = os.path.join(script_path, 'standards', wrapper_name)
 
     pr = ParallelRunner()
@@ -88,9 +88,8 @@ def main():
         """Generates computing jobs"""
         for p in load_parameters(standard, config_path, args.bits, args.attempts, args.tasks, args.offset, result_dir):
             arguments = p
-            arguments["standard"] = standard
             if args.cofactor_bound is not None:
-                arguments['cofactor'] = args.cofactor_bound
+                arguments['cofactor_bound'] = args.cofactor_bound
             arguments['cofactor_div'] = args.cofactor_div
             cli = " ".join(["--%s=%s" % (k, a) for k, a in arguments.items()])
             yield Task(args.interpreter, "%s %s" % (wrapper_path, cli))

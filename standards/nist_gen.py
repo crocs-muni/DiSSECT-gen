@@ -1,4 +1,4 @@
-from utils import SimulatedCurves
+from utils import SimulatedCurves, curve_command_line
 from x962_gen import X962
 
 
@@ -22,3 +22,9 @@ def generate_nist_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
         curve = NIST(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_nist_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results.to_json_file(args.outfile)

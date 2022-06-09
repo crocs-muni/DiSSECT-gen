@@ -4,9 +4,9 @@ from sage.all import Integers, ceil, floor, GF, EllipticCurve
 from abc import ABC, abstractmethod
 from sage.all import squarefree_part, BinaryQF, xsrange, gcd, ZZ, lcm, Integer
 import hashlib
-import json
+import json, argparse
 
-STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random','c25519', 'bn']
+STANDARDS = ['x962', 'brainpool', 'secg', 'nums', 'nist', 'bls', 'random', 'c25519', 'bn']
 
 
 def increment_seed(seed: str, i=1) -> str:
@@ -38,11 +38,11 @@ def seed_update(std, seed, offset):
             aseed = new_seed
         seed = seed.sign() * aseed * 2 ** 16
         return hex(seed)
-    if std =="bn":
+    if std == "bn":
         seed = ZZ(seed)
-        if seed<0:
-            return increment_seed(hex(-seed),offset)
-        return increment_seed(hex(seed),offset)
+        if seed < 0:
+            return increment_seed(hex(-seed), offset)
+        return increment_seed(hex(seed), offset)
     return increment_seed(seed, offset)
 
 
@@ -223,15 +223,21 @@ class SimulatedCurves:
     def add_curve(self, curve: VerifiableCurve):
         self._curves.append(curve)
 
+    def to_json_file(self, filename):
+        with open(filename, "w+") as f:
+            json.dump(self.json_export(), f, indent=2, cls=IntegerEncoder)
 
-def seed_order(files,standard):
+
+def seed_order(files, standard):
     """Sorts through files with results according to the right ordering of seeds"""
     if standard == 'bls':
         def bls_sort(x):
             x = int((x.split(".")[-2]).split("_")[-1], 16)
             return bin(x).count("1"), -x
+
         return sorted(files, key=lambda x: bls_sort(x))
     return sorted(files, key=lambda x: abs(int((x.split(".")[-2]).split("_")[-1], 16)))
+
 
 def class_number_check(curve: EllipticCurve, q: ZZ, bound: int):
     """Tests whether the class number of curve is lower-bounded by bound"""
@@ -294,3 +300,14 @@ class IntegerEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
         except TypeError:
             return str(obj)
+
+
+def curve_command_line():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--count", type=ZZ)
+    parser.add_argument("--prime", type=ZZ)
+    parser.add_argument("--seed")
+    parser.add_argument("--cofactor_bound")
+    parser.add_argument("--cofactor_div", type=ZZ)
+    parser.add_argument("--outfile")
+    return parser.parse_args()

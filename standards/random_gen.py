@@ -1,4 +1,4 @@
-from utils import sha512, increment_seed, SimulatedCurves, VerifiableCurve, embedding_degree
+from utils import sha512, increment_seed, SimulatedCurves, VerifiableCurve, embedding_degree, curve_command_line
 from sage.all import ZZ, GF, EllipticCurve
 
 
@@ -21,7 +21,7 @@ class RandomEC(VerifiableCurve):
 
     def security(self):
         self._secure = False
-        if self._p.nbits()!=self._bits:
+        if self._p.nbits() != self._bits:
             return
         try:
             cardinality = EllipticCurve(GF(self._p), [self._a, self._b]).__pari__().ellsea(self._cofactor_div)
@@ -72,3 +72,9 @@ def generate_random_curves(count, bits, seed, cofactor_bound=8, cofactor_div=2):
         curve = RandomEC(curve.seed(), bits)
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_random_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results.to_json_file(args.outfile)

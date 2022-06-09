@@ -1,5 +1,5 @@
 from sage.all import GF, EllipticCurve, ZZ, PolynomialRing
-from utils import VerifiableCurve, SimulatedCurves, seed_update
+from utils import VerifiableCurve, SimulatedCurves, seed_update, curve_command_line
 
 
 class BLS(VerifiableCurve):
@@ -16,12 +16,12 @@ class BLS(VerifiableCurve):
         field = GF(self._p)
         i = field(0)
         r = self._p + 1 - self.trace()
-        z = PolynomialRing(field,'z').gen()
+        z = PolynomialRing(field, 'z').gen()
         while True:
             i += 1
             if i.is_square():
                 continue
-            if not (z**3-i).roots():
+            if not (z ** 3 - i).roots():
                 break
         b = ZZ(1)
         while True:
@@ -93,3 +93,9 @@ def generate_bls_curves(count, seed):
         curve = BLS(curve.seed())
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_bls_curves(args.count, args.seed)
+    results.to_json_file(args.outfile)

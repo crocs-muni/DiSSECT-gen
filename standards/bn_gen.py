@@ -1,5 +1,5 @@
-from sage.all import ZZ, PolynomialRing, EllipticCurve, GF, sqrt, divisors, log
-from utils import VerifiableCurve, SimulatedCurves, seed_update
+from sage.all import ZZ, PolynomialRing, EllipticCurve, GF, sqrt
+from utils import VerifiableCurve, SimulatedCurves, seed_update, curve_command_line
 
 
 class BNFail(Exception):
@@ -98,3 +98,9 @@ def generate_bn_curves(count, seed):
         curve = BN(curve.seed())
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_bn_curves(args.count, args.seed)
+    results.to_json_file(args.outfile)

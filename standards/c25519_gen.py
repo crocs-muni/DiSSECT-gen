@@ -1,4 +1,4 @@
-from utils import embedding_degree, increment_seed, VerifiableCurve, SimulatedCurves
+from utils import embedding_degree, increment_seed, VerifiableCurve, SimulatedCurves, curve_command_line
 from sage.all import ZZ, EllipticCurve, GF
 
 
@@ -13,7 +13,7 @@ class C25519(VerifiableCurve):
 
     def set_ab(self):
         """Transformation from Montgomery to Weierstrass"""
-        mont_a = ZZ(self._seed)*4+2
+        mont_a = ZZ(self._seed) * 4 + 2
         assert mont_a > 2 and mont_a % 4 == 2
         mont_a = GF(self._p)(mont_a)
         self._a = 1 - mont_a ** 2 / 3
@@ -31,11 +31,11 @@ class C25519(VerifiableCurve):
             return
         self._cofactor = 8 if self._p % 4 == 1 else 4
 
-        if cardinality%self._cofactor!=0 or not ZZ(cardinality / self._cofactor).is_prime():
+        if cardinality % self._cofactor != 0 or not ZZ(cardinality / self._cofactor).is_prime():
             return
         order = cardinality // self._cofactor
         twist_card = 2 * (self._p + 1) - cardinality
-        if twist_card%4!=0 or not ZZ(twist_card / 4).is_prime():
+        if twist_card % 4 != 0 or not ZZ(twist_card / 4).is_prime():
             return
         if self._p - cardinality in [-1, 0]:
             return
@@ -51,7 +51,7 @@ class C25519(VerifiableCurve):
         self._order = order
         self._secure = True
 
-    def seed_update(self, offset = 1):
+    def seed_update(self, offset=1):
         self._seed = increment_seed(self._seed, offset)
         self.clear()
         self.set_ab()
@@ -65,7 +65,7 @@ class C25519(VerifiableCurve):
         field = GF(self._p)
         u = field(0)
         point = 0, 0
-        A = field(ZZ(self._seed)*4+2)
+        A = field(ZZ(self._seed) * 4 + 2)
         while True:
             u += 1
             v2 = u ** 3 + A * u ** 2 + u
@@ -96,3 +96,9 @@ def generate_c25519_curves(count, p, seed):
         curve = C25519(curve.seed(), p)
         curve.seed_update()
     return simulated_curves
+
+
+if __name__ == "__main__":
+    args = curve_command_line()
+    results = generate_c25519_curves(args.count, args.prime, args.seed)
+    results.to_json_file(args.outfile)
