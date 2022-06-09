@@ -16,9 +16,10 @@ def get_file_name(params: list, result_dir=None) -> str:
     return file_name if result_dir is None else os.path.join(result_dir, file_name)
 
 
-def load_parameters(std: str, config_path: str, num_bits: int, total_count: int, count: int,
+def load_parameters(std: str, config_path: str, num_bits: int, count: int, tasks: int,
                     offset: int, result_dir=None) -> dict:
     """Loads the parameters from the config file (prime,seed)"""
+    count_task = count // tasks + 1 * (count % tasks != 0)
     with open(config_path, "r") as f:
         params = json.load(f)
         try:
@@ -27,11 +28,11 @@ def load_parameters(std: str, config_path: str, num_bits: int, total_count: int,
             initial_seed = params["%s" % num_bits]
             p = 0
     curve_seed = seed_update(std, initial_seed, offset)
-    while total_count > 0:
-        c = total_count if total_count < count else count
+    while count > 0:
+        c = count if count < count_task else count_task
         f = get_file_name([c, num_bits, curve_seed], result_dir)
         yield {"count": c, "prime": p, "seed": curve_seed, "outfile": f}
-        total_count -= count
+        count -= count_task
 
         curve_seed = seed_update(std, curve_seed, count)
 
@@ -41,37 +42,39 @@ def check_config_file(config_file, bits):
     with open(config_file, "r") as f:
         params = json.load(f)
     if not str(bits) in params:
-        new_bits = list(params.keys())[0]
-        if bits!=0:
-            print(f"Bit-size {str(bits)} is not in {config_file}!",end=" ")
-        print(f"Taking {new_bits} bit-size.")
-        return new_bits
-    return bits
+        print(
+            f"Bit-size {str(bits)} is not implemented. Edit {config_file} to extend the support. Currently supported "
+            f"bit-sizes: {list(params.keys())}")
+        return False
+    return True
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Are you in a dire need of some standardized curves? Use DiSSECT-gen!")
-    parser.add_argument('standard', help='which standard do you want to simulate')
-    parser.add_argument("--tasks", type=int, default=10, help="Number of tasks to run in parallel")
-    parser.add_argument("-i", "--interpreter", default="python3", help="Sage or python?")
-    parser.add_argument("-c", "--count", type=int, default=16, help="")
-    parser.add_argument("-t", "--total_count", dest="total_count", type=int, default=32, help="")
-    parser.add_argument("-b", "--bits", type=int, default=0, help="")
-    parser.add_argument('-u', '--cofactor', type=int, default=None, help="Upper bound on the cofactor")
-    parser.add_argument("-ud", "--cofactor_div", action="store", default=0,
-                        help="Every prime divisor of cofactor must divide this parameter")
+    parser = argparse.ArgumentParser(description="DiSSECT-gen is a tool for generating elliptic curves according to "
+                                                 "popular standards or recommendations")
+    parser.add_argument('standard', help='Choose a standard.')
+    parser.add_argument("bits", type=int, help="Bit-size of the curve.")
+    parser.add_argument("-a", "--attempts", type=int, default=1, help="Number of attempts to generate curves.")
+    parser.add_argument("--tasks", type=int, default=1, help="Number of tasks to run in parallel.")
+
+    parser.add_argument('--cofactor_bound', type=int, default=None, help="Upper bound on the cofactor.")
+    parser.add_argument("--cofactor_div", type=int, default=0,
+                        help="Every prime divisor of the cofactor must divide this parameter.")
+
+    parser.add_argument("--interpreter", default="python3", help="Sage or python?")
+
     parser.add_argument("-o", "--offset", type=int, default=0, help="")
     parser.add_argument("-p", "--config_path", default=None, help="")
     parser.add_argument("-r", "--results", default='results', help="Where to store experiment results")
     args = parser.parse_args()
-    print(args)
 
     standard = args.standard
     config_path = args.config_path
     if config_path is None:
         config_path = os.path.join('standards', 'parameters', f"parameters_{standard}.json")
-    bits = check_config_file(config_path, args.bits)
-    result_dir = os.path.join(args.results, standard, str(bits))
+    if not check_config_file(config_path, args.bits):
+        return
+    result_dir = os.path.join(args.results, standard, str(args.bits))
     os.makedirs(result_dir, exist_ok=True)
     script_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
@@ -83,11 +86,11 @@ def main():
 
     def feeder():
         """Generates computing jobs"""
-        for p in load_parameters(standard, config_path, bits, args.total_count, args.count, args.offset, result_dir):
+        for p in load_parameters(standard, config_path, args.bits, args.attempts, args.tasks, args.offset, result_dir):
             arguments = p
             arguments["standard"] = standard
-            if args.cofactor is not None:
-                arguments['cofactor'] = args.cofactor
+            if args.cofactor_bound is not None:
+                arguments['cofactor'] = args.cofactor_bound
             arguments['cofactor_div'] = args.cofactor_div
             cli = " ".join(["--%s=%s" % (k, a) for k, a in arguments.items()])
             yield Task(args.interpreter, "%s %s" % (wrapper_path, cli))

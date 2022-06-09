@@ -1,8 +1,9 @@
 # DiSSECT-gen
 
-This is a SageMath implementation of the elliptic curve generation according to the standards x9.62, Brainpool, SECG
+A [SageMath](https://www.sagemath.org/) implementation of elliptic curve generation according to popular standards or recommendations.
 
 ### Requirements
+
 The implementation is written in Python 3 and imports SageMath. It is recommended to create virtual environment:
 
 ``sage --python3 -m venv --system-site-packages environment``
@@ -12,40 +13,58 @@ Installation:
 ``pip install -r requirements.txt``
 
 ### Usage
-```python3 dissectgen.py STD -t COUNT```
 
-##### standards
+```python3 dissectgen.py STD BITS ```
 
-x962, brainpool, secg
+**Options**
 
-##### options
+`STD = {x962|brainpool|secg|nums|nist|bls|c25519}` See more details about individual standards below.
 
-```-i/--interpreter PYTHON ``` choose interpreter. This is either ``sage``, ```sage --python3``` or python of your virtual environment pointing to ```sage --python3``` (see requirements above)
+```BITS``` Bit-size of the base field of the generated elliptic curves. See details of the standards for currently supported bit-sizes.
 
-```-b/--bits BITS``` bitsize of the elliptic curve. Must be specified in ```standards/parameters/parameters_*.json```. Currently: Brainpool (160, 192, 224, 256, 320, 384), SECG and x962 (112, 128, 160, 192, 224, 256, 384, 521). 
-
-```-p/--config_path PATH``` The seed for a given bitsize is specified in ```standards/parameters/parameters_*.json```. The path can be changed to PATH.
-
-```-t/--total_count COUNT``` Number of seeds to try for generating elliptic curves.
+```-a/--attempts=ATTEMPTS``` Number of attempts to generate elliptic curves. All implemented methods are based on repeated selection of curve parameters (attempts) and checking specified conditions.
 
 ```-u/--cofactor [1/0 (default)]``` If 1 then cofactor is forced to 1. Otherwise, ignored and proceed according to the standard.
 
-```-o/--offset OFFSET``` This specifies the offset from the starting seed from which the generation will begin with. 
+```-o/--offset OFFSET``` This specifies the offset from the starting seed from which the generation will begin with.
 
-```--tasks NUMBER``` Specifies the number of tasks to run in parallel.
+```--interpreter PYTHON ``` choose interpreter. This is either ``sage``, ```sage --python3``` or python of your virtual environment (default).
 
-```-c/--count COUNT``` Specifies number of seeds per task.
-
-```--results PATH``` Path to the location where the resulting curves should be stored.
+```--tasks NUMBER``` Specifies the number of tasks to run in parallel (default 1).
 
 
 
-####  Merge
+**Merge**
 
 The generation of curves is parallelized so the resulting curves are distributed into multiple files.
 
-```python3 merge -s [x962/brainpool/secg/all] -r PATH_TO_RESULTS -p PATH_TO_PARAMS``` will merge the files together
+```python3 merge -s [x962/brainpool/.../all] -r PATH_TO_RESULTS -p PATH_TO_PARAMS``` will merge the files together.
 
-#### Examples
+
+
+### Standards
+
+X9.62
+
+Brainpool
+
+SECG
+
+NUMS
+
+NIST
+
+BLS
+
+**Curve25519**
+
+- The curve generation method is implemented according to [this specification](https://datatracker.ietf.org/doc/html/rfc7748). The base field prime is selected according to the [original paper](https://www.iacr.org/cryptodb/archive/2006/PKC/3351/3351.pdf), i.e. $2^{32k-e}-c$ where $c$ is as small as possible and $e \in \{1,2,3\}$.
+- Run by `python3 dissectgen.py c25519 -t COUNT`
+- 
+
+
+
+### Examples
+
 ``python3 dissectgen.py x962 -b 192 -t 100 -u 1``
 ``python3 merge.py -s x962``
