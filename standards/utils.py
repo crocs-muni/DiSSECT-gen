@@ -304,7 +304,7 @@ class IntegerEncoder(json.JSONEncoder):
 
 def curve_command_line():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--count", type=ZZ)
+    parser.add_argument("--attempts", type=ZZ)
     parser.add_argument("--prime", type=ZZ)
     parser.add_argument("--seed")
     parser.add_argument("--cofactor_bound")

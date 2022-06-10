@@ -16,10 +16,10 @@ def get_file_name(params: list, result_dir=None) -> str:
     return file_name if result_dir is None else os.path.join(result_dir, file_name)
 
 
-def load_parameters(std: str, config_path: str, num_bits: int, count: int, tasks: int,
+def load_parameters(std: str, config_path: str, num_bits: int, attempts: int, tasks: int,
                     offset: int, result_dir=None) -> dict:
     """Loads the parameters from the config file (prime,seed)"""
-    count_task = count // tasks + 1 * (count % tasks != 0)
+    attempts_task = attempts // tasks + 1 * (attempts % tasks != 0)
     with open(config_path, "r") as f:
         params = json.load(f)
         try:
@@ -28,13 +28,13 @@ def load_parameters(std: str, config_path: str, num_bits: int, count: int, tasks
             initial_seed = params["%s" % num_bits]
             p = 0
     curve_seed = seed_update(std, initial_seed, offset)
-    while count > 0:
-        c = count if count < count_task else count_task
-        f = get_file_name([c, num_bits, curve_seed], result_dir)
-        yield {"count": c, "prime": p, "seed": curve_seed, "outfile": f}
-        count -= count_task
+    while attempts > 0:
+        a = attempts if attempts < attempts_task else attempts_task
+        f = get_file_name([a, num_bits, curve_seed], result_dir)
+        yield {"attempts": a, "prime": p, "seed": curve_seed, "outfile": f}
+        attempts -= attempts_task
 
-        curve_seed = seed_update(std, curve_seed, count)
+        curve_seed = seed_update(std, curve_seed, attempts)
 
 
 def check_config_file(config_file, bits):
