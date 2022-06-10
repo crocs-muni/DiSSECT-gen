@@ -79,12 +79,14 @@ class BN(VerifiableCurve):
         self.compute_properties()
 
 
-def generate_bn_curves(count, seed):
+def generate_bn_curves(attempts, seed, count=0):
     x = ZZ(seed)
     bits = (36 * x ** 4 + 36 * x ** 3 + 24 * x ** 2 + 6 * x + 1).nbits()
-    simulated_curves = SimulatedCurves("bn", bits, seed, count)
+    simulated_curves = SimulatedCurves("bn", bits, seed, attempts)
     curve = BN(seed)
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         try:
             if not curve.secure():
                 curve.seed_update()
@@ -95,6 +97,7 @@ def generate_bn_curves(count, seed):
         curve.generate_generator()
         curve.compute_properties()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = BN(curve.seed())
         curve.seed_update()
     return simulated_curves
@@ -102,5 +105,5 @@ def generate_bn_curves(count, seed):
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_bn_curves(args.count, args.seed)
+    results = generate_bn_curves(args.attempts, args.seed, args.count)
     results.to_json_file(args.outfile)

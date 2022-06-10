@@ -202,10 +202,10 @@ class VerifiableCurve(ABC):
 
 
 class SimulatedCurves:
-    def __init__(self, standard, bits, initial_seed, tries):
+    def __init__(self, standard, bits, initial_seed, attempts):
         self._curves = []
         self._bits = bits
-        self._tries = tries
+        self._attempts = attempts
         self._initial_seed = initial_seed
         self._standard = standard
 
@@ -217,7 +217,7 @@ class SimulatedCurves:
         return {"name": f"{self._standard}_sim_" + str(self._bits),
                 "desc": f"simulated curves generated according to the {self._standard} standard",
                 "initial_seed": self._initial_seed,
-                "seeds_tried": self._tries, "seeds_successful": len(self._curves),
+                "seeds_tried": self._attempts, "seeds_successful": len(self._curves),
                 "curves": [curve.json_export() for curve in self._curves]}
 
     def add_curve(self, curve: VerifiableCurve):
@@ -309,5 +309,6 @@ def curve_command_line():
     parser.add_argument("--seed")
     parser.add_argument("--cofactor_bound")
     parser.add_argument("--cofactor_div", type=ZZ)
+    parser.add_argument("--count", type=int, default = 0)
     parser.add_argument("--outfile")
     return parser.parse_args()

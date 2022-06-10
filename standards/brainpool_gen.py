@@ -113,14 +113,16 @@ class Brainpool(VerifiableCurve):
             break
 
 
-def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> SimulatedCurves:
+def generate_brainpool_curves(attempts: int, p: ZZ, initial_seed: str, count=0) -> SimulatedCurves:
     """This is an implementation of the Brainpool standard suitable for large-scale simulations
         For more readable implementation, see 'brainpool_curve' above
     """
-    simulated_curves = SimulatedCurves("brainpool", p.nbits(), initial_seed, count)
+    simulated_curves = SimulatedCurves("brainpool", p.nbits(), initial_seed, attempts)
     curve = Brainpool(initial_seed, p)
     b_seed = None
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         if curve.not_defined():
             curve.set_a()
             if not curve.check_a():
@@ -139,6 +141,7 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> Simulated
         curve.generate_generator(b_seed)
         curve.compute_properties()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = Brainpool(curve.seed(), p)
         curve.seed_update()
 
@@ -147,5 +150,5 @@ def generate_brainpool_curves(count: int, p: ZZ, initial_seed: str) -> Simulated
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_brainpool_curves(args.count, args.prime, args.seed)
+    results = generate_brainpool_curves(args.attempts, args.prime, args.seed, args.count)
     results.to_json_file(args.outfile)

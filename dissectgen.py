@@ -56,6 +56,7 @@ def main():
     parser.add_argument("bits", type=int, help="Bit-size of the curve.")
     parser.add_argument("-a", "--attempts", type=int, default=1, help="Number of attempts to generate curves.")
     parser.add_argument("--tasks", type=int, default=1, help="Number of tasks to run in parallel.")
+    parser.add_argument("--count", type=int, default=None, help="Number of curves to generate.")
 
     parser.add_argument('--cofactor_bound', type=int, default=None, help="Upper bound on the cofactor.")
     parser.add_argument("--cofactor_div", type=int, default=0,
@@ -88,6 +89,8 @@ def main():
         """Generates computing jobs"""
         for p in load_parameters(standard, config_path, args.bits, args.attempts, args.tasks, args.offset, result_dir):
             arguments = p
+            if args.count is not None:
+                arguments['count'] = args.count
             if args.cofactor_bound is not None:
                 arguments['cofactor_bound'] = args.cofactor_bound
             arguments['cofactor_div'] = args.cofactor_div

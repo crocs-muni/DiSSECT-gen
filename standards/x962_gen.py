@@ -81,20 +81,23 @@ class X962(VerifiableCurve):
         self.compute_properties()
 
 
-def generate_x962_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
-    """Generates at most #count curves according to the standard
+def generate_x962_curves(attempts, p, seed, cofactor_bound=None, cofactor_div=0, count=0):
+    """Generates at most #attempts curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
     if cofactor_bound is not None:
         cofactor_bound = ZZ(cofactor_bound)
-    simulated_curves = SimulatedCurves("x962", p.nbits(), seed, count)
+    simulated_curves = SimulatedCurves("x962", p.nbits(), seed, attempts)
     curve = X962(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         if not curve.secure():
             curve.seed_update()
             continue
         curve.compute_properties()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = X962(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
         curve.seed_update()
     return simulated_curves
@@ -102,5 +105,6 @@ def generate_x962_curves(count, p, seed, cofactor_bound=None, cofactor_div=0):
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_x962_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results = generate_x962_curves(args.attempts, args.prime, args.seed, args.cofactor_bound, args.cofactor_div,
+                                   args.count)
     results.to_json_file(args.outfile)

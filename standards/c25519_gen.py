@@ -81,18 +81,21 @@ class C25519(VerifiableCurve):
         self._generator = point[0], point[1]
 
 
-def generate_c25519_curves(count, p, seed):
-    """Generates at most #count curves according to the standard
+def generate_c25519_curves(attempts, p, seed, count=0):
+    """Generates at most #attempts curves according to the standard
     """
-    simulated_curves = SimulatedCurves("c25519", p.nbits(), seed, count)
+    simulated_curves = SimulatedCurves("c25519", p.nbits(), seed, attempts)
     curve = C25519(seed, p)
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         if not curve.secure():
             curve.seed_update()
             continue
         curve.generate_generator()
         curve.compute_properties()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = C25519(curve.seed(), p)
         curve.seed_update()
     return simulated_curves
@@ -100,5 +103,5 @@ def generate_c25519_curves(count, p, seed):
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_c25519_curves(args.count, args.prime, args.seed)
+    results = generate_c25519_curves(args.attempts, args.prime, args.seed, args.count)
     results.to_json_file(args.outfile)

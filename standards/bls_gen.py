@@ -79,10 +79,12 @@ class BLS(VerifiableCurve):
         self._generator = point[0], point[1]
 
 
-def generate_bls_curves(count, seed):
-    simulated_curves = SimulatedCurves("bls", 381, seed, count)
+def generate_bls_curves(attempts, seed, count=0):
+    simulated_curves = SimulatedCurves("bls", 381, seed, attempts)
     curve = BLS(seed)
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         if not curve.secure():
             curve.seed_update()
             continue
@@ -90,6 +92,7 @@ def generate_bls_curves(count, seed):
         curve.compute_properties()
         curve.generate_generator()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = BLS(curve.seed())
         curve.seed_update()
     return simulated_curves
@@ -97,5 +100,5 @@ def generate_bls_curves(count, seed):
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_bls_curves(args.count, args.seed)
+    results = generate_bls_curves(args.attempts, args.seed, args.count)
     results.to_json_file(args.outfile)

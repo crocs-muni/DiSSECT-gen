@@ -60,15 +60,18 @@ class RandomEC(VerifiableCurve):
         return p.next_prime()
 
 
-def generate_random_curves(count, bits, seed, cofactor_bound=8, cofactor_div=2):
-    simulated_curves = SimulatedCurves("random", bits, seed, count)
+def generate_random_curves(attempts, bits, seed, count=0):
+    simulated_curves = SimulatedCurves("random", bits, seed, attempts)
     curve = RandomEC(seed, bits)
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         if not curve.secure():
             curve.seed_update()
             continue
         curve.compute_properties()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = RandomEC(curve.seed(), bits)
         curve.seed_update()
     return simulated_curves
@@ -76,5 +79,5 @@ def generate_random_curves(count, bits, seed, cofactor_bound=8, cofactor_div=2):
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_random_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results = generate_random_curves(args.attempts, args.prime, args.seed, args.count)
     results.to_json_file(args.outfile)

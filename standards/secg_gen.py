@@ -73,17 +73,20 @@ class SECG(X962):
                 return self.curve()(x, y) * self._cofactor
 
 
-def generate_secg_curves(count, p, seed, cofactor_bound=4, cofactor_div=2):
+def generate_secg_curves(attempts, p, seed, cofactor_bound=4, cofactor_div=2, count=0):
     """This is an implementation of the SEC standard suitable for large-scale simulations
     """
-    simulated_curves = SimulatedCurves("secg", p.nbits(), seed, count)
+    simulated_curves = SimulatedCurves("secg", p.nbits(), seed, attempts)
     curve = SECG(seed, p, cofactor_bound=cofactor_bound, cofactor_div=cofactor_div)
-    for _ in range(count):
+    a, c = 0, 0
+    while (count == 0 and a < attempts) or (count > 0 and c < count):
+        a += 1
         if not curve.secure():
             curve.seed_update()
             continue
         curve.compute_properties()
         simulated_curves.add_curve(curve)
+        c += 1
         curve = SECG(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
         curve.seed_update()
     return simulated_curves
@@ -91,6 +94,6 @@ def generate_secg_curves(count, p, seed, cofactor_bound=4, cofactor_div=2):
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_secg_curves(args.count, args.prime, args.seed, args.cofactor_bound, args.cofactor_div)
+    results = generate_secg_curves(args.attempts, args.prime, args.seed, args.cofactor_bound, args.cofactor_div,
+                                   args.count)
     results.to_json_file(args.outfile)
-

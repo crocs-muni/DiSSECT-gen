@@ -24,6 +24,8 @@ Installation:
 
 ```[-a/--attempts=ATTEMPTS (default = 1)]``` The number of attempts to generate the elliptic curves. All implemented methods are based on repeated selection of curve parameters (attempts) and checking specified conditions.
 
+```[--count=COUNT (default = None)]``` The number of curves to generate. If None then the option ```ATTEMPTS``` is used, otherwise ```ATTEMPTS``` is ignored. 
+
 ```[--tasks NUMBER (default = 1)]```  The number of tasks to run in parallel.
 
 ``` [--cofactor_bound BOUND (default = None)]``` Upper bound on the cofactor of the curve. Used if the standards permits more strict upper bound on the cofactor, otherwise ignored.
