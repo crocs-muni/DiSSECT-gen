@@ -1,28 +1,13 @@
-from pf_utils import Pell, PQa
 import json
-from bn_gen import BN
-
-
-def pqa_test():
-    pqa = iter(PQa(0, 1, 13))
-    for [x, y] in [[3, 4], [1, 3], [2, 3], [1, 4], [3, 1], [3, 4], [1, 3], [2, 3], [1, 4]]:
-        a = next(pqa)
-        assert (a["P"], a["Q"]) == (x, y)
-
-
-def pell_test1():
-    pell = iter(Pell(157, 12))
-    for (x, y) in [(13, 1), (10663, 851), (579160, 46222), (483790960, 38610722), (26277068347, 2097138361),
-                   (21950079635497, 1751807067011)]:
-        assert next(pell) == (x, y)
+from dissectgen.standards.bn_gen import BN
 
 
 def test_bn_gen():
-    with open("parameters/test_parameters_bn.json", "r") as f:
+    with open("test_parameters/test_parameters_bn.json", "r") as f:
         curves = json.load(f)
     for name, curve in curves.items():
         print(name)
-        if curve["bits"] > 400:  # cm computation too time consuming otherwise
+        if curve["bits"] > 400:  # cm computation too time-consuming otherwise
             continue
         seed = curve["seed"]
         initial_seed = int(seed, 16) + 5 * (-1) ** (int(seed, 16) > 0)
@@ -45,5 +30,3 @@ def test_bn_gen():
 if __name__ == "__main__":
     test_bn_gen()
     print("success")
-    # pqa_test()
-    # pell_test1()

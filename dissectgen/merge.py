@@ -4,7 +4,7 @@ import json
 import argparse
 import os
 
-from standards.utils import IntegerEncoder, seed_order, STANDARDS, seed_update
+from dissectgen.standards.utils import IntegerEncoder, seed_order, STANDARDS, seed_update
 
 RESULTS_DIR = 'results'
 

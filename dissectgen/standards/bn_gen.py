@@ -1,5 +1,14 @@
+""" This is an implementation of an algorithm for generation of Barreto-Naehrig curves based on the ISO/IEC
+15946-5 standard (part 7.3).
+
+Changes compared to the ISO standard:
+- the algorithm skips the step (e)
+- we take as an input seed (parameter u in the standard) instead of the size of the desired field,
+but the transformation between u and the size is trivial (step (b)).
+- we extend the algorithm to generate as many curves as desired by taking larger values of u (not just the smallest)."""
+
 from sage.all import ZZ, PolynomialRing, EllipticCurve, GF, sqrt
-from utils import VerifiableCurve, SimulatedCurves, seed_update, curve_command_line
+from dissectgen.standards.utils import VerifiableCurve, SimulatedCurves, seed_update, curve_command_line
 
 
 class BNFail(Exception):
@@ -55,6 +64,7 @@ class BN(VerifiableCurve):
                 return False
             self._seed = hex(-u)
         """
+        Skipped step (e), see the info above.
         for d in divisors(n - 1):
             if log(n, 2) ** 2 < d < sqrt(n):
                 return False

@@ -4,8 +4,8 @@ import argparse
 import json
 import logging
 import os
-from job_manager.manager import ParallelRunner, Task, TaskResult
-from standards.utils import seed_update
+from dissectgen.job_manager.manager import ParallelRunner, Task, TaskResult
+from dissectgen.standards.utils import seed_update
 
 logger = logging.getLogger(__name__)
 

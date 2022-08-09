@@ -2,7 +2,7 @@
     https://tools.ietf.org/pdf/rfc5639.pdf#15
 """
 from sage.all import ZZ, GF, EllipticCurve
-from utils import increment_seed, embedding_degree, find_integer, SimulatedCurves, VerifiableCurve, \
+from dissectgen.standards.utils import increment_seed, embedding_degree, find_integer, SimulatedCurves, VerifiableCurve, \
     class_number_check, curve_command_line
 
 CHECK_CLASS_NUMBER = False

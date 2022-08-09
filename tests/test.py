@@ -91,7 +91,7 @@ class CurveTests(unittest.TestCase, ABC):
 
 class TestX962(CurveTests):
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_x962.json")
+        self.curves = self.set_up("../standards/parameters/test_parameters_x962.json")
         self.standard = "x962"
 
     def standard_class(self):
@@ -127,7 +127,7 @@ class TestX962(CurveTests):
 class TestBrainpool(CurveTests):
 
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_brainpool.json")
+        self.curves = self.set_up("../standards/parameters/test_parameters_brainpool.json")
         self.standard = "brainpool"
 
     def standard_class(self):
@@ -154,7 +154,7 @@ class TestBrainpool(CurveTests):
 
 class TestSECG(CurveTests):
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_secg.json")
+        self.curves = self.set_up("../standards/parameters/test_parameters_secg.json")
         self.standard = "secg"
 
     def standard_class(self):
@@ -176,7 +176,7 @@ class TestSECG(CurveTests):
 class TestNUMS(CurveTests):
 
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_nums.json")
+        self.curves = self.set_up("../standards/parameters/test_parameters_nums.json")
         self.standard = "nums"
 
     def standard_class(self):
@@ -198,7 +198,7 @@ class TestNUMS(CurveTests):
 class TestC25519(CurveTests):
 
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_c25519.json")
+        self.curves = self.set_up("../standards/parameters/test_parameters_c25519.json")
         self.standard = "c25519"
 
     def standard_class(self):
@@ -220,7 +220,7 @@ class TestC25519(CurveTests):
 class TestBLS(CurveTests):
 
     def setUp(self):
-        self.curves = self.set_up("parameters/test_parameters_bls.json", 381)
+        self.curves = self.set_up("../standards/parameters/test_parameters_bls.json", 381)
         self.standard = "bls"
 
     def standard_class(self):
@@ -241,7 +241,7 @@ class TestBLS(CurveTests):
 
 class TestRandomEC(CurveTests):
     def setUp(self) -> None:
-        self.curves = self.set_up("parameters/test_parameters_random.json")
+        self.curves = self.set_up("../standards/parameters/test_parameters_random.json")
         self.standard = "random"
 
     def standard_class(self):

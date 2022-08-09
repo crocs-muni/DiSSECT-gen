@@ -1,6 +1,5 @@
-from utils import increment_seed, embedding_degree, SimulatedCurves, VerifiableCurve, find_integer, get_b_from_r
+from dissectgen.standards.utils import increment_seed, embedding_degree, SimulatedCurves, VerifiableCurve, find_integer, get_b_from_r, curve_command_line
 from sage.all import ZZ, GF, EllipticCurve, prime_range, is_pseudoprime, sqrt
-from utils import curve_command_line
 
 
 def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255, cofactor_bound=None) -> dict:

@@ -1,5 +1,5 @@
 from sage.all import GF, EllipticCurve, ZZ, PolynomialRing
-from utils import VerifiableCurve, SimulatedCurves, seed_update, curve_command_line
+from dissectgen.standards.utils import VerifiableCurve, SimulatedCurves, seed_update, curve_command_line
 
 
 class BLS(VerifiableCurve):

@@ -1,5 +1,5 @@
-from utils import SimulatedCurves, curve_command_line
-from x962_gen import X962
+from dissectgen.standards.utils import SimulatedCurves, curve_command_line
+from dissectgen.standards.x962_gen import X962
 
 
 class NIST(X962):

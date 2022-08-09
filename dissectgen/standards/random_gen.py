@@ -1,4 +1,4 @@
-from utils import sha512, increment_seed, SimulatedCurves, VerifiableCurve, embedding_degree, curve_command_line
+from dissectgen.standards.utils import sha512, increment_seed, SimulatedCurves, VerifiableCurve, embedding_degree, curve_command_line
 from sage.all import ZZ, GF, EllipticCurve
 
 
