@@ -1,4 +1,5 @@
-from dissectgen.standards.utils import increment_seed, embedding_degree, SimulatedCurves, VerifiableCurve, find_integer, get_b_from_r, curve_command_line
+from dissectgen.standards.utils import increment_seed, embedding_degree, VerifiableCurve, find_integer, \
+    get_b_from_r, curve_command_line, generate_curves
 from sage.all import ZZ, GF, EllipticCurve, prime_range, is_pseudoprime, sqrt
 
 
@@ -22,8 +23,9 @@ def verify_near_primality(u: ZZ, r_min: ZZ, l_max=255, cofactor_bound=None) -> d
 
 
 class X962(VerifiableCurve):
-    def __init__(self, seed, p, cofactor_bound=None, cofactor_div=0):
-        super().__init__(seed, p, cofactor_bound, cofactor_div)
+    def __init__(self, seed: str, p: ZZ, cofactor_bound=None, cofactor_div=0):
+        conditions = {"seed": seed, "p": p, "cofactor_bound": cofactor_bound, "cofactor_div": cofactor_div}
+        super().__init__(conditions)
         self._standard = "x962"
         self._category = "x962"
         self._embedding_degree_bound = 20
@@ -74,32 +76,13 @@ class X962(VerifiableCurve):
         self.clear()
         self.set_ab()
 
-    def find_curve(self):
-        while not self.secure():
-            self.seed_update()
-        self.compute_properties()
-
 
 def generate_x962_curves(attempts, p, seed, cofactor_bound=None, cofactor_div=0, count=0):
     """Generates at most #attempts curves according to the standard
     The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
-    if cofactor_bound is not None:
-        cofactor_bound = ZZ(cofactor_bound)
-    simulated_curves = SimulatedCurves("x962", p.nbits(), seed, attempts)
-    curve = X962(seed, p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
-    a, c = 0, 0
-    while (count == 0 and a < attempts) or (count > 0 and c < count):
-        a += 1
-        if not curve.secure():
-            curve.seed_update()
-            continue
-        curve.compute_properties()
-        simulated_curves.add_curve(curve)
-        c += 1
-        curve = X962(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
-        curve.seed_update()
-    return simulated_curves
+    curve = X962(seed, p, cofactor_bound, cofactor_div)
+    return generate_curves(attempts, count, curve)
 
 
 if __name__ == "__main__":

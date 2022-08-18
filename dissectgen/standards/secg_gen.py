@@ -1,10 +1,9 @@
-""" Implementation of the SEC standard, see
-    https://www.secg.org/sec2-v2.pdf
-    https://www.secg.org/sec1-v2.pdf
+""" Implementation of the SEC standard, see section 3.1.1.1 in
+    https://www.secg.org/sec1-v1.pdf
 """
 
-from utils import sha1, SimulatedCurves, curve_command_line
-from x962_gen import X962
+from dissectgen.standards.utils import sha1, generate_curves, curve_command_line
+from dissectgen.standards.x962_gen import X962
 from sage.all import ZZ, floor, GF, Integer, EllipticCurve
 
 
@@ -26,8 +25,9 @@ def large_prime_factor(m: ZZ, bound: int):
 
 
 class SECG(X962):
-    def __init__(self, seed, p, cofactor_bound=4, cofactor_div=2):
-        super().__init__(seed, p, cofactor_bound, cofactor_div)
+    def __init__(self, seed, p):
+        super().__init__(seed, p)
+        self._cofactor_bound = ZZ(4)
         self._standard = "secg"
         self._category = "secg"
         self._embedding_degree_bound = 100
@@ -57,10 +57,9 @@ class SECG(X962):
         self._secure = True
 
     def generate_generator(self):
-        """Returns generator as specified in SEC, currently not using"""
         c = 1
         while True:
-            r = bytes("Base point", 'ASCII') + bytes([1]) + bytes([c]) + bytes.fromhex(seed)
+            r = bytes("Base point", 'ASCII') + bytes([1]) + bytes([c]) + bytes.fromhex(self._seed[2:])
             e = ZZ(sha1(r.hex()))
             t = e % (2 * self._p)
             x, z = t % self._p, t // self._p
@@ -73,27 +72,15 @@ class SECG(X962):
                 return self.curve()(x, y) * self._cofactor
 
 
-def generate_secg_curves(attempts, p, seed, cofactor_bound=4, cofactor_div=2, count=0):
-    """This is an implementation of the SEC standard suitable for large-scale simulations
+def generate_secg_curves(attempts, p, seed, count=0):
+    """Generates at most #attempts curves according to the standard
+    The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
-    simulated_curves = SimulatedCurves("secg", p.nbits(), seed, attempts)
-    curve = SECG(seed, p, cofactor_bound=cofactor_bound, cofactor_div=cofactor_div)
-    a, c = 0, 0
-    while (count == 0 and a < attempts) or (count > 0 and c < count):
-        a += 1
-        if not curve.secure():
-            curve.seed_update()
-            continue
-        curve.compute_properties()
-        simulated_curves.add_curve(curve)
-        c += 1
-        curve = SECG(curve.seed(), p, cofactor_div=cofactor_div, cofactor_bound=cofactor_bound)
-        curve.seed_update()
-    return simulated_curves
+    curve = SECG(seed, p)
+    return generate_curves(attempts, count, curve)
 
 
 if __name__ == "__main__":
     args = curve_command_line()
-    results = generate_secg_curves(args.attempts, args.prime, args.seed, args.cofactor_bound, args.cofactor_div,
-                                   args.count)
+    results = generate_secg_curves(args.attempts, args.prime, args.seed, args.count)
     results.to_json_file(args.outfile)

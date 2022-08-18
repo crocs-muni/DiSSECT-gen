@@ -21,7 +21,8 @@ def gen_brainpool_prime(seed: str, nbits: int) -> ZZ:
 
 class Brainpool(VerifiableCurve):
     def __init__(self, seed, p):
-        super().__init__(seed, p, cofactor_bound=1, cofactor_div=1)
+        conditions = {"seed": seed, "p": p, "cofactor_bound": 1, "cofactor_div": 1}
+        super().__init__(conditions)
         self._standard = "brainpool"
         self._category = "brainpool"
         self._cofactor = 1

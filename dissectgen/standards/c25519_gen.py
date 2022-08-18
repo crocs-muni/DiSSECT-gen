@@ -1,13 +1,15 @@
-from dissectgen.standards.utils import embedding_degree, increment_seed, VerifiableCurve, SimulatedCurves, curve_command_line
+from dissectgen.standards.utils import embedding_degree, increment_seed, VerifiableCurve, generate_curves, \
+    curve_command_line
 from sage.all import ZZ, EllipticCurve, GF
 
 
 class C25519(VerifiableCurve):
     def __init__(self, seed, p):
         if p % 4 == 1:
-            super().__init__(seed, p, cofactor_bound=8, cofactor_div=2)
+            conditions = {"p": p, "seed": seed, "cofactor_bound": 8, "cofactor_div": 2}
         else:
-            super().__init__(seed, p, cofactor_bound=4, cofactor_div=2)
+            conditions = {"p": p, "seed": seed, "cofactor_bound": 4, "cofactor_div": 2}
+        super().__init__(conditions)
         self._standard = "c25519"
         self._category = "c25519"
 
@@ -56,11 +58,6 @@ class C25519(VerifiableCurve):
         self.clear()
         self.set_ab()
 
-    def find_curve(self):
-        while not self.secure():
-            self.seed_update()
-        self.compute_properties()
-
     def generate_generator(self):
         field = GF(self._p)
         u = field(0)
@@ -83,22 +80,10 @@ class C25519(VerifiableCurve):
 
 def generate_c25519_curves(attempts, p, seed, count=0):
     """Generates at most #attempts curves according to the standard
+    The cofactor is arbitrary if cofactor_one=False (default) otherwise cofactor=1
     """
-    simulated_curves = SimulatedCurves("c25519", p.nbits(), seed, attempts)
     curve = C25519(seed, p)
-    a, c = 0, 0
-    while (count == 0 and a < attempts) or (count > 0 and c < count):
-        a += 1
-        if not curve.secure():
-            curve.seed_update()
-            continue
-        curve.generate_generator()
-        curve.compute_properties()
-        simulated_curves.add_curve(curve)
-        c += 1
-        curve = C25519(curve.seed(), p)
-        curve.seed_update()
-    return simulated_curves
+    return generate_curves(attempts, count, curve)
 
 
 if __name__ == "__main__":
