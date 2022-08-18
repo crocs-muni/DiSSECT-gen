@@ -1,39 +1,27 @@
 {
 "random112": {
     "bits": 112,
-    "seed": "0x11",
-    "p": "0xeb1ece5f19ae72da0d9079f85da3",
-    "A": "0x2a372c457e4436bc6cd84644cc04",
-    "B": "0x118d6337ee6213f9cf220951177",
-    "order": "0xeb1ece5f19ae73d3582eae205767",
-    "j": "0xaa9f85a57bb501138b3ff4da2ac",
-    "emb": "0xaaff21b9870a82c84021f3003f9",
-    "cm": "-0x2b9b8fbfb190a65b4e9d8a2ca8c03",
-    "cofactor": "0x01"
+    "seed": "0x0000000000000000000000000000",
+    "p": "0xe09770825fe3aec46bd1fecd11fd",
+    "A": "0x49c4f3bef515a327639956ea65d1",
+    "B": "0x8080c841c89db07a34b9beb16852",
+    "order": "0x1c12ee104bfc75eb808511095549",
+    "j": "0xc68da918816bc47affc969cd6094",
+    "emb": "0x1c12ee104bfc75eb808511095548",
+    "cm": "-0xca262c531b37d12cf4bcad1614a4",
+    "cofactor": "0x8"
   },
 
-  "random160": {
-    "bits": 160,
-    "seed": "0xc4",
-    "p": "0x4ac08005387e3e03aa7551b97cd29eef92f2669",
-    "A": "0x52dc1d49ad77454065a3d470c12f6216eee2b4",
-    "B": "0x31b40d7838a5a820f9933c332fbfd1cd083891c",
-    "order": "0x256040029c3f1f01d538c9fe57e61ea115def51",
-    "j": "0x3aef33fc14049522d9ca2b9e7d3a0ac76f82438",
-    "emb": "0x256040029c3f1f01d538c9fe57e61ea115def50",
-    "cm": "-0x4b112e12ea3b25c042cb8ced9f1c32ff2ec0d64",
-    "cofactor": "0x02"
-  },
-  "random192": {
-    "bits": 192,
-    "seed": "0x4a",
-    "p": "0x10f12efa3c8edddb5343f970ce1a9037d02764e24e0dceff",
-    "A": "0x95baaa7f6fcc1fc1100684ca3be661e652e518037b7912b",
-    "B": "0x59771ae052eb8ecfbd1100b46dc59b93babdc183669eda9",
-    "order": "0x878977d1e476eeda9a1fcb842befa7e8e20a630922aef99",
-    "j": "0x6a74bfafc0751c1a21605a1eea88d83fd6e3ea33b41cb1f",
-    "emb": "0x43c4bbe8f23b776d4d0fe5c215f7d3f47105318491577cc",
-    "cm": "-0x2f2c44ca5f5ea5e823d27e92c6d77aacb752d6f48310f238",
-    "cofactor": "0x02"
+  "random128": {
+    "bits": 128,
+    "seed": "0X00000000000000000000000000000000",
+    "p": "0xf0140e314ee38d4472393680e7a72ac1",
+    "A": "0xb8d43c0051ad5ef1c9fb6bde74090895",
+    "B": "0x3f551834a181fcf792d97170dd999274",
+    "order": "0x3c05038c53b8e351600801cde87efd8f",
+    "j": "0x607e579f177c4bd37cefcfe6974ab773",
+    "emb": "0x1e0281c629dc71a8b00400e6f43f7ec7",
+    "cm": "-0xa8f05582615deff7a0b57d320b347d38",
+    "cofactor": "0x04"
   }
 }
