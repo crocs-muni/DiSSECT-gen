@@ -1,3 +1,9 @@
+"""
+Curve25519 and Goldilocks according to https://datatracker.ietf.org/doc/html/rfc7748#appendix-A
+
+Primes have been generated similarly as in  https://www.iacr.org/cryptodb/archive/2006/PKC/3351/3351.pdf (page 13), i.e. of the form 2^(32k-e)- where c is as small as possible and e \in {1,2,3}
+"""
+
 from dissectgen.standards.utils import embedding_degree, increment_seed, VerifiableCurve, generate_curves, \
     curve_command_line
 from sage.all import ZZ, EllipticCurve, GF
